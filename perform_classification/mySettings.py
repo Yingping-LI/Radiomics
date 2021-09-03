@@ -302,33 +302,29 @@ def get_classification_tasks_dict_TCGA_MGMT():
 
   
 """
-For TCGA dataset, Classify the columns into features, interested clinical info and the classification targets.
+For TCGA dataset, classify the columns into features, interested clinical info and the classification targets.
 """
-def get_column_list_for_TCGA(dataframe):
+def get_column_list_for_TCGA(columns):
 
-    #get the feature names, the column names and the classification target names.
     feature_namelist=[]
     clinical_namelist=[]
     classification_label_namelist=[]
     ET_related_feature_namelist=[]
-    for column in dataframe.columns:
-        #print("- ", column)
-
+    for column in columns:
         if column.startswith("ET_related_feature_"): 
             ET_related_feature_namelist.append(column)
             
         elif column in ["age", "is_female"]:
-                clinical_namelist.append(column)
+            clinical_namelist.append(column)
 
-        elif column in ["is_GBM", "is_IDH_mutant", "is_1p19q_codeleted"]:
-                classification_label_namelist.append(column)
+        elif column in ["is_GBM", "is_IDH_mutant", "is_1p19q_codeleted", "is_MGMT_Methylated"]:
+            classification_label_namelist.append(column)
 
         else:
             column_prefix=column.split("_")[0]
             if column_prefix in ["VOLUME", "DIST", "INTENSITY", "HISTO","SPATIAL", "ECCENTRICITY", "SOLIDITY", "TEXTURE", "TGM"]:
                 feature_namelist.append(column)
  
-    
     return feature_namelist, ET_related_feature_namelist, clinical_namelist, classification_label_namelist  
     
     
