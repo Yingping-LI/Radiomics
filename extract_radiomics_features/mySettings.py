@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import sys
-sys.path.append("E://2020_MRI_Work/HarmonizationProject")
-from utils.myUtils import mkdir
 
 #possible values for the parameters:
 #    - "extractor_setting_file": "None" means using default settings.
@@ -32,9 +29,8 @@ Feature extractor setting for BraTS2021 competition data.
 """
 def get_feature_extract_setting_dict1():
     # base path
-    base_dataPath="G://DURING PHD/5)Glioblastoma_MGMT_RSNA-MICCAI"
+    base_dataPath="G:/PhDProjects/RadiogenomicsProjects/BraTS2021"
     feature_save_folder=base_dataPath+"/Features/extracted_features"
-    mkdir(feature_save_folder)
     
     # base settings
     modality_list=["t1", "t1ce", "t2", "flair"]
@@ -44,25 +40,25 @@ def get_feature_extract_setting_dict1():
     #define settings for each feature extraction.
     feature_extract_setting_dict={}
     
-    feature_extract_setting_dict["BraTS2021_MGMT_train"]={
-        "image_folder": base_dataPath+"/BraTS2021_Segmentation_filtered/BraTS2021_TrainingData",
-        "segmentation_folder": base_dataPath+"/Predict_Segmentation/imagesTr_GT_filtered",     
+    feature_extract_setting_dict["BraTS2021_train"]={
+        "image_folder": base_dataPath+"/PreprocessedImages/BraTS2021_Segmentation_filtered/BraTS2021_TrainingData",
+        "segmentation_folder": base_dataPath+"/PreprocessedImages/Predict_Segmentation/imagesTr_GT_filtered",     
     }
         
-    feature_extract_setting_dict["BraTS2021_MGMT_validation"]={
-        "image_folder": base_dataPath+"/BraTS2021_Segmentation_filtered/BraTS2021_ValidationData",
-        "segmentation_folder": base_dataPath+"/Predict_Segmentation/imagesVal_converted_filtered",
+    feature_extract_setting_dict["BraTS2021_validation"]={
+        "image_folder": base_dataPath+"/PreprocessedImages/BraTS2021_Segmentation_filtered/BraTS2021_ValidationData",
+        "segmentation_folder": base_dataPath+"/PreprocessedImages/Predict_Segmentation/imagesVal_converted_filtered",
     }
         
-    feature_extract_setting_dict["BraTS2021_MGMT_train_dcm_to_nii"]={
-        "image_folder": base_dataPath+"/MGMT_classification_nii/train/3_registered_nii",
-        "segmentation_folder": base_dataPath+"/Predict_Segmentation/imagesTr_dcm_to_nii_converted",
-    }
+#     feature_extract_setting_dict["BraTS2021_train_dcm_to_nii"]={
+#         "image_folder": base_dataPath+"/PreprocessedImages/MGMT_classification_nii/train/3_registered_nii",
+#         "segmentation_folder": base_dataPath+"/PreprocessedImages/Predict_Segmentation/imagesTr_dcm_to_nii_converted",
+#     }
     
-    feature_extract_setting_dict["BraTS2021_MGMT_validation_dcm_to_nii"]={
-        "image_folder": base_dataPath+"/MGMT_classification_nii/validation/3_registered_nii",
-        "segmentation_folder": base_dataPath+"/Predict_Segmentation/imagesVal_dcm_to_nii_converted",
-    }
+#     feature_extract_setting_dict["BraTS2021_validation_dcm_to_nii"]={
+#         "image_folder": base_dataPath+"/PreprocessedImages/MGMT_classification_nii/validation/3_registered_nii",
+#         "segmentation_folder": base_dataPath+"/PreprocessedImages/Predict_Segmentation/imagesVal_dcm_to_nii_converted",
+#     }
     
     
     ##=============== Add other distributions =============================
@@ -87,9 +83,8 @@ Feature extractor setting for TCGA-dataset.
 """
 def get_feature_extract_setting_dict():
     # base path
-    base_dataPath="C://YingpingLI/Glioma/TCGA"
+    base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
     feature_save_folder=base_dataPath+"/Features/extracted_features"
-    mkdir(feature_save_folder)
     
     # base settings
     modality_list=["t1", "t1Gd", "t2", "flair"]
@@ -100,13 +95,13 @@ def get_feature_extract_setting_dict():
     feature_extract_setting_dict={}
     
     feature_extract_setting_dict["TCGA_train"]={
-        "image_folder": base_dataPath+"/TCIA_Segmentation/TCGA_arranged/TCGA_train/Images",
-        "segmentation_folder": base_dataPath+"/TCIA_Segmentation/TCGA_arranged/TCGA_train/segmentation",
+        "image_folder": base_dataPath+"/originalData/TCGA/TCIA_Segmentation/TCGA_arranged/TCGA_train/Images",
+        "segmentation_folder": base_dataPath+"/originalData/TCGA/TCIA_Segmentation/TCGA_arranged/TCGA_train/segmentation",
     }
         
     feature_extract_setting_dict["TCGA_test"]={
-        "image_folder": base_dataPath+"/TCIA_Segmentation/TCGA_arranged/TCGA_test/Images",
-        "segmentation_folder": base_dataPath+"/TCIA_Segmentation/TCGA_arranged/TCGA_test/segmentation",
+        "image_folder": base_dataPath+"/originalData/TCGA/TCIA_Segmentation/TCGA_arranged/TCGA_test/Images",
+        "segmentation_folder": base_dataPath+"/originalData/TCGA/TCIA_Segmentation/TCGA_arranged/TCGA_test/segmentation",
     }
     
     
