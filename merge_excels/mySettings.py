@@ -101,7 +101,7 @@ def get_feature_merge_settings_dict():
         "excel_dict": {
         "feature_data": basepath+"/Features/extracted_features/features_TCGA_train.xlsx",
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
-        "gene_label": basepath+"/Features/gene_label/TCGA_subtypes.xlsx"},
+        "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_encoded.xlsx"},
         #----
         "save_excel_path": basepath+"/Features/final_metadata/features_TCGA_train.xlsx" ,
         "index_column_name": "patient_id",
@@ -113,7 +113,7 @@ def get_feature_merge_settings_dict():
         "excel_dict": {
         "feature_data": basepath+"/Features/extracted_features/features_TCGA_test.xlsx",
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
-        "gene_label": basepath+"/Features/gene_label/TCGA_subtypes.xlsx"},
+        "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_encoded.xlsx"},
         #----
         "save_excel_path": basepath+"/Features/final_metadata/features_TCGA_test.xlsx" ,
         "index_column_name": "patient_id",

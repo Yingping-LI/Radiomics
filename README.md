@@ -12,8 +12,9 @@ Codes for Radiogenomics Analysis
 - Step 3: preparing meta data:
          - extract radiomic features. (Done!)
          - extract scanner info data. (Done!)
+         - encode categorial data. (Done!)
          - Merge excels with features, prediction labels, and MRI scanner settings. (Done!)
-         - meta data preprocessing before classification, such as encode categorial data.
+         - meta data preprocessing before classification.
          
-- Step 4: perform feature selection and classification.(Done!)
+- Step 4: perform feature selection and classification.
 
