@@ -65,7 +65,7 @@ def get_feature_merge_settings_dict1():
 
 
 """
-Merge excel files for the TCGA data.
+Merge excel files for the TCGA data, with features extracted from the .nii images by ourselves.
 """
 def get_feature_merge_settings_dict():
     
