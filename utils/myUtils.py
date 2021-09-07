@@ -110,12 +110,15 @@ def get_logger(log_file_name):
     
     return logger
 
+        
 """
 Define a function to print and save log simultaneously.
 """
-def save_log(str,logger):
-    logger.info(str)
-    print(str)
+def save_log(string, logger=None):
+    if logger is None:
+        print(string)
+    else:
+        logger.info(string)
     
 def myprint(str, show_logs):
     if show_logs:
