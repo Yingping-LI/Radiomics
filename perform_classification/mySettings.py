@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 import pandas as pd
+import os
 
 '''
 Basic Settings for the code
 '''
 global_basic_settings={
+    "experiment_class": "BraTS2021", #"BraTS2021",  "TCGA_IDH",  "TCGA_MGMT"
     ##"501.01_BraTS2021-segNiiData_base", "601.01_BraTS2021-dcmToNiiData_base",  "701.01_BraTS2021-segNiiData-zscore_base"
     "task_name":"BraTS2021_501.01_segNiiData_base", 
     "feature_selection_method":"AnovaTest", #"RFECV","RFE", AnovaTest, SelectFromModel
@@ -21,11 +23,18 @@ def get_basic_settings():
 
 def get_classification_task_settings():
     basic_settings=get_basic_settings()
+    experiment_class=basic_settings["experiment_class"]
     task_name=basic_settings["task_name"]
     
-    classification_tasks_dict=dict(**get_classification_tasks_dict_BraTS2021(), 
-                                   **get_classification_tasks_dict_TCGA_IDH(),
-                                   **get_classification_tasks_dict_TCGA_MGMT())
+    if experiment_class=="BraTS2021":
+        classification_tasks_dict=get_classification_tasks_dict_BraTS2021()
+        
+    elif experiment_class=="TCGA_IDH":
+        classification_tasks_dict=get_classification_tasks_dict_TCGA_IDH()  
+        
+    elif experiment_class=="TCGA_MGMT":
+        classification_tasks_dict=get_classification_tasks_dict_TCGA_MGMT()  
+    
     classification_task_settings=classification_tasks_dict[task_name]
     
     return task_name, classification_task_settings
@@ -38,14 +47,12 @@ def convert_complex_to_real(datadf, feature_namelist):
     
     return datadf_converted
 
-def preprocessing_data(datadf):
+def preprocessing_data(datadf, feature_columns):
      #convert the complex data to real data
-    train_data=convert_complex_to_real(train_data, feature_columns)
-    test_data=convert_complex_to_real(test_data, feature_columns)
+    datadf=convert_complex_to_real(datadf, feature_columns)
     
     #fill nan values with 0.
-    train_data.fillna(value=0, inplace=True)
-    test_data.fillna(value=0, inplace=True)
+    datadf.fillna(value=0, inplace=True)
     
     return datadf
 #======================================= BraTS2021 classification task settings =======================================================
@@ -53,7 +60,7 @@ def preprocessing_data(datadf):
 Perform MGMT classification for BraTS2021 competition.
 """
 def get_classification_tasks_dict_BraTS2021():
-    basepath="G://DURING PHD/5)Glioblastoma_MGMT_RSNA-MICCAI"
+    basepath="G://PhDProjects/RadiogenomicsProjects/BraTS2021"
     basic_settings=get_basic_settings() 
     base_results_path=basepath+"/Results/Results_BraTS2021_MGMT/"+basic_settings["harmonization_method"]+"_"+basic_settings["harmonization_label"]
     classification_tasks_dict={}
@@ -61,43 +68,48 @@ def get_classification_tasks_dict_BraTS2021():
     
     ## basic excel path settings
     classification_tasks_dict["BraTS2021_501.01_segNiiData_base"]={
-        "train_excel_path": basepath+"/Features/final_metadata/features_BraTS2021_MGMT_train.xlsx",
-        "test_excel_path_dict": {"test_data": basepath+"/Features/final_metadata/features_BraTS2021_MGMT_validation.xlsx"},
+        "train_excel_path": basepath+"/Features/final_metadata/features_BraTS2021_train.xlsx",
+        "test_excel_path_dict": {"test_data": basepath+"/Features/final_metadata/features_BraTS2021_validation.xlsx"},
     }
     
     classification_tasks_dict["BraTS2021_601.01_dcmToNiiData_base"]={
-        "train_excel_path": basepath+"/Features/final_metadata/features_BraTS2021_MGMT_train_dcm_to_nii.xlsx",
-        "test_excel_path_dict": {"test_data": basepath+"/Features/final_metadata/features_BraTS2021_MGMT_validation_dcm_to_nii.xlsx"},
+        "train_excel_path": basepath+"/Features/final_metadata/features_BraTS2021_train_dcm_to_nii.xlsx",
+        "test_excel_path_dict": {"test_data": basepath+"/Features/final_metadata/features_BraTS2021_validation_dcm_to_nii.xlsx"},
     }
     
-    classification_tasks_dict["BraTS2021_701.01_segNiiData-zscore_base"]={
-        "train_excel_path": basepath+"/Features/final_metadata/features_BraTS2021_MGMT_train_zscore.xlsx",
-        "test_excel_path_dict": {"test_data": basepath+"/Features/final_metadata/features_BraTS2021_MGMT_validation_zscore.xlsx"},
-    }
+#     classification_tasks_dict["BraTS2021_701.01_segNiiData-zscore_base"]={
+#         "train_excel_path": basepath+"/Features/final_metadata/features_BraTS2021_train_zscore.xlsx",
+#         "test_excel_path_dict": {"test_data": basepath+"/Features/final_metadata/features_BraTS2021_validation_zscore.xlsx"},
+#     }
            
     
     ## Other settings like "train_data", "test_data_dict", "label_column", "base_results_path", "feature_columns"
     for task_name, classification_settings in classification_tasks_dict.items():
         train_excel_path=classification_settings["train_excel_path"]
+        test_excel_path_dict=classification_settings["test_excel_path_dict"]
 
         # preprocessing train data
         train_data=pd.read_excel(train_excel_path, index_col=0)
-        train_data=preprocessing_data(train_data)
+        feature_columns=get_feature_columns(train_data)
+        train_data=preprocessing_data(train_data, feature_columns)
         
         # preprocessing test data
         test_data_dict={}
         for description, test_excel_path in test_excel_path_dict.items():
             test_data=pd.read_excel(test_excel_path, index_col=0)
-            test_data=preprocessing_data(test_data)
+            test_data=preprocessing_data(test_data, feature_columns)
             test_data_dict[description]=test_data
         
         # set and save the settings
         classification_settings["train_data"]=train_data
         classification_settings["test_data_dict"]=test_data_dict
-        classification_settings["label_column"]="MGMT_value" if 
+        classification_settings["label_column"]="MGMT_value" 
         classification_settings["base_results_path"]=base_results_path
-        classification_settings["feature_columns"]=get_feature_columns(train_data)
+        classification_settings["feature_columns"]=feature_columns
         classification_tasks_dict[task_name]=classification_settings
+        
+        if not os.path.exists(base_results_path):
+            os.makedirs(base_results_path)
     
     return classification_tasks_dict
 
@@ -142,13 +154,13 @@ def get_feature_columns(train_data, modality_list=["t1", "t1ce", "t2", "flair"],
 #=====================  classification task settings for TCGA datast: GBM, IDH and 1p/19q ========================================
 def get_classification_tasks_dict_TCGA_IDH():
     # basic paths
-    basepath="C://YingpingLI/Glioma" 
+    basepath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes" 
     basic_settings=get_basic_settings() 
     base_results_path=basepath+"/Results/TCGA_subtypes/"+basic_settings["harmonization_method"]+"_"+basic_settings["harmonization_label"]
     
     ##--------------------- Prepare the data -------------------
     # data path
-    data_excel_path="TCGA_IDH":basepath+"/TCGA/TCGA_IDH_well_arranged_data_withScannerInfo.xlsx",
+    data_excel_path=basepath+"/TCGA/TCGA_IDH_well_arranged_data_withScannerInfo.xlsx"
 
     #read the preprocessing the data
     dataframe=pd.read_excel(data_excel_path, index_col=0)
@@ -210,7 +222,7 @@ def get_classification_tasks_dict_TCGA_IDH():
         "label_column":"is_1p19q_codeleted",
         "base_results_path":base_results_path}
         
-    classification_tasks_dict["TCGA_3.02_is1p19qCodeleted_with_clinicalInfo"={
+    classification_tasks_dict["TCGA_3.02_is1p19qCodeleted_with_clinicalInfo"]={
         "train_data": train_data_LGG, 
         "test_data": test_data_LGG, 
         "feature_columns":feature_namelist+clinical_namelist, 
@@ -223,7 +235,7 @@ def get_classification_tasks_dict_TCGA_IDH():
 #=====================  classification task settings for TCGA datast: MGMT ========================================
 def get_classification_tasks_dict_TCGA_MGMT():
     # basic paths
-    basepath="C://YingpingLI/Glioma" 
+    basepath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
     basic_settings=get_basic_settings() 
     base_results_path=basepath+"/Results/TCGA_MGMT/"+basic_settings["harmonization_method"]+"_"+basic_settings["harmonization_label"]
     
@@ -254,7 +266,7 @@ def get_classification_tasks_dict_TCGA_MGMT():
     classification_tasks_dict={}
 
     #========= predict MGMT methylated vs. unmethylated for LGG and GBM data ========
-    classification_tasks_dict["TCGA_4.01_isMGMTMethylated_base": {
+    classification_tasks_dict["TCGA_4.01_isMGMTMethylated_base"]: {
         "train_data": train_data, 
         "test_data": test_data, 
         "feature_columns":feature_namelist, 
