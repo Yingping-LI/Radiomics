@@ -1,7 +1,7 @@
 # This is a non-active comment on a separate line
 imageType:
     Original: {}
-    LoG: {}
+    LoG: {'sigma' : [1.0, 3.0]}
     Gradient: {}
     
     
@@ -12,7 +12,25 @@ imageType:
 
 featureClass:
   firstorder:
-  shape:
+  shape: 
+#  # By default, 3 features are not extracted: Compactness 1, Compactness 2, Spherical Disproportion. So we explicitly enable them!
+#     - 'MeshVolume'
+#     - 'VoxelVolume'
+#     - 'SurfaceArea'
+#     - 'SurfaceVolumeRatio'
+#     - 'Sphericity'
+#     - 'Compactness1'
+#     - 'Compactness2'
+#     - 'SphericalDisproportion'
+#     - 'Maximum3DDiameter'
+#     - 'Maximum2DDiameterSlice'
+#     - 'Maximum2DDiameterColumn'
+#     - 'Maximum2DDiameterRow'
+#     - 'MajorAxisLength'
+#     - 'MinorAxisLength'
+#     - 'LeastAxisLength'
+#     - 'Elongation'
+#     - 'Flatness'
   glrlm: 
   glszm:
   gldm: 
