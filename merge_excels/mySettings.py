@@ -161,7 +161,7 @@ def get_feature_merge_settings_dict():
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
         "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_MGMT.xlsx"}}
     
-   #3) With features extracted from the .nii images by ourselves, for predicting IDH status.
+   #3) With the public features provided by TCIA, for predicting IDH status.
     feature_merge_settings_dict["TCGA_public_features_IDH_train"]={
         #----                                   
         "excel_dict": {
@@ -176,7 +176,7 @@ def get_feature_merge_settings_dict():
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
         "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_IDH.xlsx"}}
     
-    #4) With features extracted from the .nii images by ourselves, for predicting MGMT status.
+    #4) With the public features provided by TCIA, for predicting MGMT status.
     feature_merge_settings_dict["TCGA_public_features_MGMT_train"]={
         #----                                   
         "excel_dict": {
