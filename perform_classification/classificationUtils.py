@@ -495,9 +495,10 @@ def select_threshold(y_true, predicted_prob, save_results_path):
     plt.savefig(os.path.join(save_results_path, "threshold_selection.jpeg"))  
     plt.show()
     
-    # Choose the threshold which maximize the F1-score.
-    best_threshold=metrics_df["F1"].idxmax()
-    
+    # Choose the threshold which maximize the F1-score, if F1 is equal, then choose the one which maximizes the accuracy.
+    metrics_df.sort_values(by=["F1", "accuracy"],  ascending=[False, False], inplace=True)
+    best_threshold=metrics_df.index[0]
+
     return best_threshold
  
     

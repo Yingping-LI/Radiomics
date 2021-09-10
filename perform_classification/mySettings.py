@@ -11,7 +11,7 @@ import os
 # - "feature_filter_dict": used to control the settings to filter the features for classification.
 #                     - "modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"];
 #                     - "imageType_list": ["original", "gradient", "log-sigma-1-0-mm-3D", "log-sigma-3-0-mm-3D"],
-#                     - "tumor_subregion_list"£º["NCR", "ED", "ET", "TC", "wholeTumor"]
+#                     - "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"]
 # - "feature_selection_method": {"RFECV","RFE", AnovaTest, SelectFromModel}
 #                     Note that: AnovaTest is very fast and effective.
 # - "harmonization_method": {"withoutComBat", "parametric_ComBat", "nonParametric_ComBat, "noEB_ComBat"}
