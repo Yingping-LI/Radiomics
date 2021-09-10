@@ -620,6 +620,16 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, fe
         predict(trained_model_path, test_X, test_Y, os.path.join(save_results_path, description))
     
 
+#=======================================================================================
+"""
+Function: perform ComBat harmonzation.
+"""
+def perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label):
+    
+    return train_data, test_data_dict
+
+
+
 
 #=======================================================================================
 """"
@@ -646,6 +656,12 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
     save_results_path=os.path.join(base_results_path, task_name)
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path) 
+    
+    ## Perform ComBat harmonization
+    harmonization_method=other_settings["harmonization_method"]
+    harmonization_label=other_settings["harmonization_label"]
+    train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label)
+    
     
     ## train the model
     best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, feature_selection_type)
