@@ -1,14 +1,21 @@
 # This is a non-active comment on a separate line
+#Available image types are ['Exponential', 'Gradient', 'LBP2D', 'LBP3D', 'LoG', 'Logarithm', 'Original', 'Square', 'SquareRoot', 'Wavelet']
 imageType:
-    Original: {}
-    LoG: {'sigma' : [1.0, 3.0]}
-    Gradient: {}
+#===== Experiment 1======
+#     Original: {}
+#     LoG: {'sigma' : [1.0, 3.0]}
+#     Gradient: {}
+#===== Experiment 2======
+    Square: {}
+    SquareRoot: {}
+    Logarithm: {}
+    Exponential: {}
+    # LBP2D: {}
+    LBP3D: {}
+#===== Experiment 3======
+#     Wavelet: {}
     
-    
-#    Wavelet: {}
-#    LoG: {'sigma' : [4.5]}  
-#     Wavelet:
-#         binWidth: 10
+
 
 featureClass:
   firstorder:
