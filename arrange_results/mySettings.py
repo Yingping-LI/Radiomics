@@ -2,9 +2,28 @@
 # coding: utf-8
 
 
-def get_baseresults_path():
-    results_bathpath="G://PhDProjects\RadiogenomicsProjects\GliomasSubtypes\ArrangeResults"
-   
-    return results_bathpath
+#========================================
+# - "results_bathpath":  -TCGA: "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/ArrangeResults",
+#                        -BraTs2021: "G://PhDProjects/RadiogenomicsProjects/BraTS2021/Results/ArrangeResults"
+# - "imagetype_dict": image type chosen for extracting features.
+
+'''
+Basic Settings for the code
+'''
+global_basic_settings={
+    "results_bathpath": "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/ArrangeResults",
+    "imagetype_dict": {"TCGA_IDH": "exponential",
+                       "TCGA_MGMT": "lbp-3D-m1",#"LBP-3d-m1" or "LBP-3d-m1"
+                       "BraTS2021": "lbp-3D-m1",
+                      }
+}
+
+def get_basic_settings():   
+
+    return global_basic_settings
+
+
+
+
 
 
