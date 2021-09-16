@@ -47,7 +47,7 @@ from probatus.feature_elimination import ShapRFECV
 import sys
 sys.path.append("../")
 from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log
-from utils.harmonizationUtils import neuroComBat_harmonization
+from utils.harmonizationUtils import neuroComBat_harmonization, neuroComBat_harmonization_FromTraning
 
 from mySettings import get_basic_settings
 
@@ -115,7 +115,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
     param_grids["RandomForest"]=[{
         'n_estimators':  [10, 20, 40, 60, 80, 100],
         'max_features': ['auto', 'sqrt'],
-        'max_depth':   [5, 10, 20, 30, 40, 50, None],
+        'max_depth':   [5, 10, 20, 30, 40, 50],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5, 10],
         'bootstrap': [True, False],
@@ -124,7 +124,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
     
     param_grids["DecisionTree"]=[{
         "criterion": ["gini", "entropy"],
-        "max_depth":  [5, 10, 20, 30, 40, 50, None],
+        "max_depth":  [5, 10, 20, 30, 40, 50],
         "min_samples_split": [2, 5, 10],
         "min_samples_leaf": [1, 2, 5, 10],
         "random_state":[random_seed],
@@ -136,7 +136,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
     param_grids["ExtraTrees"]=[{
         "n_estimators":[10, 20, 40, 60, 80, 100],
         "criterion": ["gini", "entropy"],
-        'max_depth':  [10, 20, 30, 40, 50, None],
+        'max_depth':  [5, 10, 20, 30, 40, 50],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5, 10],
         'max_features': ['auto', 'sqrt', "log2"],
@@ -152,7 +152,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         "learning_rate": [0.001, 0.01, 0.1],
         "num_leaves": [21, 31, 51], 
         "device": ["gpu"],
-        "max_depth":  [10, 20, 30, 40, 50, None],
+        "max_depth":  [5, 10, 20, 30, 40, 50],
         "min_data_in_leaf":  [1, 2, 5, 10, 20],
         "reg_lambda": [0.001, 0.01, 0.1, 0.2, 0.3],
         "verbose": [-1],
@@ -161,7 +161,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         
     param_grids["XGBClassifier"]=[{
         "n_estimators":  [10, 20, 40, 60, 80, 100],
-        'max_depth':  [10, 20, 30, 40, 50, None],
+        'max_depth':  [5, 10, 20, 30, 40, 50],
         "learning_rate": [0.001, 0.01, 0.1],
         "booster": ["gbtree", "gblinear", "dart"],
         #'min_child_weight': [1, 5, 10],
@@ -179,7 +179,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
     
     param_grids["GradientBoosting"]=[{
         "n_estimators": [10, 20, 40, 60, 80, 100],
-        'max_depth':  [10, 20, 30, 40, 50, None],
+        'max_depth':  [5, 10, 20, 30, 40, 50],
         "learning_rate": [0.001, 0.01, 0.1],
         "loss": ["deviance", "exponential"],
         "subsample":  [0.3, 0.7, 1], 
@@ -660,7 +660,8 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
     ## Perform ComBat harmonization
     harmonization_method=other_settings["harmonization_method"]
     harmonization_label=other_settings["harmonization_label"]
-    train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label)
+    if harmonization_method!="withoutComBat":
+        train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label)
     
     
     ## train the model
