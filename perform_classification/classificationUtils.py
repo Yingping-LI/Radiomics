@@ -17,6 +17,7 @@ import numpy as np
 from time import time
 import operator
 import joblib
+import warnings
 
 ## For plots
 import seaborn as sns
@@ -627,12 +628,29 @@ Function: perform ComBat harmonzation.
 def perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label, harmonization_ref_batch):
     # harmonization for the train data, and learn the estimates used for test data.
     print("\n Available harmonization label for train data: \n {}.".format(train_data[harmonization_label].value_counts()))
+    train_setting_label_list=np.unique(train_data[harmonization_label])
     harmonized_train_data, estimates, info=neuroComBat_harmonization(train_data, feature_columns, harmonization_label, harmonization_method, harmonization_ref_batch)
+    
+    print("\n estimates['batches']={}".format(estimates['batches']))
+    print("\n info={}".format(info))
     
     # harmonize the test data using the learnt estimates.
     harmonized_test_data_dict={}
     for description, test_data in test_data_dict.items():
         print("\n Available harmonization label for {}: \n {}.".format(description, test_data[harmonization_label].value_counts()))
+        
+        #delete the rows whose setting labels are not in the training data.
+        test_setting_label_list=np.unique(test_data[harmonization_label])
+        abnormal_setting_label_list= list(set(test_setting_label_list).difference(set(train_setting_label_list)))
+        print("\n train_setting_label_list={}.".format(train_setting_label_list))
+        print("\n test_setting_label_list={}.".format(test_setting_label_list))
+        print("\n abnormal_setting_label_list={}.\n".format(abnormal_setting_label_list))
+        if len(abnormal_setting_label_list)>0:
+            warnings.warn("Warning: will delete the data with setting labels {}, which do not exist in training dataset!!".format(abnormal_setting_label_list))
+            for abnormal_setting_label in abnormal_setting_label_list:
+                test_data.drop(test_data[test_data[harmonization_label]==abnormal_setting_label].index, inplace=True)
+        
+        #harmomize the test data;
         harmonized_test_data, estimates_test=neuroComBat_harmonization_FromTraning(test_data, feature_columns, harmonization_label, estimates)
         harmonized_test_data_dict[description]=harmonized_test_data
         
