@@ -624,9 +624,19 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, fe
 """
 Function: perform ComBat harmonzation.
 """
-def perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label):
+def perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label, harmonization_ref_batch):
+    # harmonization for the train data, and learn the estimates used for test data.
+    print("\n Available harmonization label for train data: \n {}.".format(train_data[harmonization_label].value_counts()))
+    harmonized_train_data, estimates, info=neuroComBat_harmonization(train_data, feature_columns, harmonization_label, harmonization_method, harmonization_ref_batch)
     
-    return train_data, test_data_dict
+    # harmonize the test data using the learnt estimates.
+    harmonized_test_data_dict={}
+    for description, test_data in test_data_dict.items():
+        print("\n Available harmonization label for {}: \n {}.".format(description, test_data[harmonization_label].value_counts()))
+        harmonized_test_data, estimates_test=neuroComBat_harmonization_FromTraning(test_data, feature_columns, harmonization_label, estimates)
+        harmonized_test_data_dict[description]=harmonized_test_data
+        
+    return harmonized_train_data, harmonized_test_data_dict
 
 
 
@@ -660,8 +670,9 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
     ## Perform ComBat harmonization
     harmonization_method=other_settings["harmonization_method"]
     harmonization_label=other_settings["harmonization_label"]
+    harmonization_ref_batch=other_settings["harmonization_ref_batch"]
     if harmonization_method!="withoutComBat":
-        train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label)
+        train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label, harmonization_ref_batch)
     
     
     ## train the model

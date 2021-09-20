@@ -32,8 +32,9 @@ global_basic_settings={
                          "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
     "feature_selection_method":"AnovaTest",  
-    "harmonization_method": "withoutComBat",  
-    "harmonization_label": "is_3T",     
+    "harmonization_method": "parametric_ComBat",  
+    "harmonization_label": "Tissue.source.site", 
+    "harmonization_ref_batch": None, # 1, "Henry Ford Hospital"
     "random_seed": 2021,
 }
 
