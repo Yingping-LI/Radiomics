@@ -11,7 +11,9 @@
 Basic Settings for the code
 '''
 global_basic_settings={
-    "results_bathpath": "G://PhDProjects/RadiogenomicsProjects/BraTS2021/Results/ArrangeResults",
+    "results_bathpath": "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/TCGA_MGMT_site_lbp-3D-m1",
+    #"results_bathpath": "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/TCGA_IDH_site_exponential",
+    #"results_bathpath": "G://PhDProjects/RadiogenomicsProjects/BraTS2021/Results/ArrangeResults",
     #"G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/arrange_results_wavelet" ,
     #"G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/ArrangeResults",
     "imagetype_dict": {"TCGA_IDH": "exponential",
