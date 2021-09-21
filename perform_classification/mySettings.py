@@ -24,11 +24,11 @@ import os
 Basic Settings for the code
 '''
 global_basic_settings={
-    "experiment_class": "TCGA_IDH",  
+    "experiment_class": "TCGA_MGMT",  
     "task_list": [], 
     "features_for_TCGA": "extracted_features",  
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
-                         "imageType_list": ["exponential"], 
+                         "imageType_list": ["lbp-3D-m1"],  # "exponential" for TCGA-IDH, "lbp-3D-m1" for TCGA-MGMT
                          "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
     "feature_selection_method":"AnovaTest",  

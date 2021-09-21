@@ -626,13 +626,16 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, fe
 Function: perform ComBat harmonzation.
 """
 def perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label, harmonization_ref_batch):
+    print("\n\n Begin to harmonize the data....")
+    print("\n harmonization_method={}, number of features={}, harmonization_ref_batch={}.".format(harmonization_method, len(feature_columns), harmonization_ref_batch))
+        
     # harmonization for the train data, and learn the estimates used for test data.
     print("\n Available harmonization label for train data: \n {}.".format(train_data[harmonization_label].value_counts()))
     train_setting_label_list=np.unique(train_data[harmonization_label])
     harmonized_train_data, estimates, info=neuroComBat_harmonization(train_data, feature_columns, harmonization_label, harmonization_method, harmonization_ref_batch)
     
-    print("\n estimates['batches']={}".format(estimates['batches']))
-    print("\n info={}".format(info))
+    #print("\n estimates['batches']={}".format(estimates['batches']))
+    #print("\n info={}".format(info))
     
     # harmonize the test data using the learnt estimates.
     harmonized_test_data_dict={}
@@ -642,9 +645,9 @@ def perform_harmonization(train_data, test_data_dict, feature_columns, harmoniza
         #delete the rows whose setting labels are not in the training data.
         test_setting_label_list=np.unique(test_data[harmonization_label])
         abnormal_setting_label_list= list(set(test_setting_label_list).difference(set(train_setting_label_list)))
-        print("\n train_setting_label_list={}.".format(train_setting_label_list))
-        print("\n test_setting_label_list={}.".format(test_setting_label_list))
-        print("\n abnormal_setting_label_list={}.\n".format(abnormal_setting_label_list))
+        #print("\n train_setting_label_list={}.".format(train_setting_label_list))
+        #print("\n test_setting_label_list={}.".format(test_setting_label_list))
+        #print("\n abnormal_setting_label_list={}.\n".format(abnormal_setting_label_list))
         if len(abnormal_setting_label_list)>0:
             warnings.warn("Warning: will delete the data with setting labels {}, which do not exist in training dataset!!".format(abnormal_setting_label_list))
             for abnormal_setting_label in abnormal_setting_label_list:
@@ -690,7 +693,26 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
     harmonization_label=other_settings["harmonization_label"]
     harmonization_ref_batch=other_settings["harmonization_ref_batch"]
     if harmonization_method!="withoutComBat":
-        train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label, harmonization_ref_batch)
+        if harmonization_label=="is_3T":
+            modality_list=other_settings["feature_filter_dict"]["modality_list"]
+            print("\n modality_list={}".format(modality_list))
+            for modality in modality_list:
+                harmonization_label_for_modality=harmonization_label+"_"+modality
+                
+                #filter the features for this modality
+                feature_columns_for_modality=[]
+                for feature in feature_columns:
+                    if feature.startswith(modality):
+                        feature_columns_for_modality.append(feature)
+                        
+                #harmonization for this modality data
+                if len(feature_columns_for_modality)>0:
+                    train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns_for_modality, 
+                                                                 harmonization_method, harmonization_label_for_modality, 
+                                                                 harmonization_ref_batch)
+        else:
+            train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, 
+                                                             harmonization_method, harmonization_label, harmonization_ref_batch)
     
     
     ## train the model
