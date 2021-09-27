@@ -14,7 +14,7 @@ import os
 #                         "square", "squareroot", "logarithm", "exponential", "lbp-3D-m2", "lbp-3D-m1", "lbp-3D-k",
 #                         "wavelet-LLH", "wavelet-LHL", "wavelet-LHH", "wavelet-HLL", "wavelet-HLH", "wavelet-HHL", "wavelet-HHH", "wavelet-LLL",],
 #                     - "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"]
-# - "feature_selection_method": {"RFECV","RFE", AnovaTest, SelectFromModel}
+# - "feature_selection_method": {"RFECV","RFE", AnovaTest, SelectFromModel, PCA}
 #                     Note that: AnovaTest is very fast and effective.
 # - "harmonization_method": {"withoutComBat", "parametric_ComBat", "nonParametric_ComBat, "noEB_ComBat"}
 # - "harmonization_label": {"Tissue.source.site", "is_3T"}, column name of the setting label used to do the harmonization.
@@ -24,15 +24,15 @@ import os
 Basic Settings for the code
 '''
 global_basic_settings={
-    "experiment_class": "TCGA_MGMT",  
+    "experiment_class": "TCGA_IDH",
     "task_list": [], 
     "features_for_TCGA": "extracted_features",  
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
-                         "imageType_list": ["lbp-3D-m1"],  # "exponential" for TCGA-IDH, "lbp-3D-m1" for TCGA-MGMT
+                         "imageType_list": ["exponential"],  # "exponential" for TCGA-IDH, "lbp-3D-m1" for TCGA-MGMT
                          "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
-    "feature_selection_method":"AnovaTest",  
-    "harmonization_method": "parametric_ComBat",  
+    "feature_selection_method":"AnovaTest",
+    "harmonization_method": "withoutComBat",
     "harmonization_label": "Tissue.source.site", 
     "harmonization_ref_batch": None, # 1, "Henry Ford Hospital"
     "random_seed": 2021,

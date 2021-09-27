@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 # For feature selection and classifier models
+from sklearn.decomposition import PCA
 from lightgbm import LGBMClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression, Perceptron, LassoCV
@@ -249,6 +250,18 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].k
             
+        elif feature_selection_type=="PCA":
+            feature_selection_method=PCA()
+            pipeline = Pipeline(steps=[('scaler', Scaler),
+                                       ('feature_selection',feature_selection_method),
+                                       ('classifier',classifier_model)])
+
+            param_grid_classifier_list=[{"classifier__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
+            randomsearch_param_grids=[dict(**{"feature_selection__n_components": feature_number_for_selection}, **param_grid_classifier) for param_grid_classifier in param_grid_classifier_list]
+
+            search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1).fit(X, y)
+            n_feature_selected=search.best_estimator_["feature_selection"].n_components
+
         else:
             raise Exception("Undefined feature selection function: {} !!".format(feature_selection_type))
         
@@ -293,7 +306,7 @@ def get_all_classifier_list():
     List of the models considered for comparison.
     """
     
-    feature_selection_method_list=["RFE", "RFECV", "AnovaTest", "SelectFromModel"]
+    feature_selection_method_list=["RFE", "RFECV", "AnovaTest", "SelectFromModel", "PCA"]
     classifier_list=["SVM", "Perceptron", "LogisticRegression", "RandomForest", "DecisionTree",
                      "ExtraTrees", "LightGBM", "GradientBoosting", "XGBClassifier"]
     
