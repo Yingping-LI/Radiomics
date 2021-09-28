@@ -18,6 +18,7 @@ from time import time
 import operator
 import joblib
 import warnings
+from collections import Counter
 
 ## For plots
 import seaborn as sns
@@ -35,12 +36,16 @@ from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier
 from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
-from sklearn.pipeline import Pipeline
+#from sklearn.pipeline import Pipeline
 from sklearn import svm, feature_selection
 
 # For evaluation metrics
 from sklearn import metrics
 
+#For dealing with imbalanced data
+from imblearn.over_sampling import SMOTE, BorderlineSMOTE, SVMSMOTE, RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.pipeline import Pipeline 
 
 ## feature selection
 from probatus.feature_elimination import ShapRFECV
@@ -62,7 +67,7 @@ random_seed=get_basic_settings()["random_seed"]
 # - from a list of models, with different feature selection methods and classifiers;
 # - using the train data and 5-folds cross-validation.
 
-def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_selection_type):
+def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Tuning the hypperparameters for different models.
     """
@@ -202,12 +207,13 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         ### Scaler
         Scaler=StandardScaler()  # MinMaxScaler(feature_range=(0,1))
         cross_val = StratifiedKFold(n_splits=5)
+        imbalanced_data_handler = get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed)
         
         #--------------------- begin hyperparameter tuning process--------------------------------
         ### define feature selection function.
         if feature_selection_type=="RFE":
             feature_selection_method=RFE(estimator=classifier_model, step=5) #, n_features_to_select=20
-            pipeline = Pipeline(steps=[('scaler', Scaler), 
+            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
                                        ('feature_selection',feature_selection_method)])
             #save_log("Possible hyperparameters for {} pipeline: \n {}".format(classfier_name, pipeline.get_params().keys()))
             
@@ -219,7 +225,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="RFECV": 
             feature_selection_method=RFECV(estimator=classifier_model, step=5, min_features_to_select=20) 
-            pipeline = Pipeline(steps=[('scaler', Scaler), 
+            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
                                        ('feature_selection',feature_selection_method)])
             
             randomsearch_param_grids=[{"feature_selection__estimator__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
@@ -229,7 +235,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="SelectFromModel": 
             feature_selection_method=SelectFromModel(estimator=classifier_model) #max_features=20
-            pipeline = Pipeline(steps=[('scaler', Scaler), 
+            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
                                        ('feature_selection',feature_selection_method)])
             
             param_grid_feature_selection_list=[{"feature_selection__estimator__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
@@ -240,7 +246,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="AnovaTest": 
             feature_selection_method=SelectKBest(score_func=f_classif) # k=n_features_to_select
-            pipeline = Pipeline(steps=[('scaler', Scaler),  
+            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler),  
                                        ('feature_selection',feature_selection_method),
                                        ('classifier',classifier_model)])
             
@@ -252,7 +258,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="PCA":
             feature_selection_method=PCA()
-            pipeline = Pipeline(steps=[('scaler', Scaler),
+            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler),
                                        ('feature_selection',feature_selection_method),
                                        ('classifier',classifier_model)])
 
@@ -270,7 +276,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         
         ### get the best estimator.
         if feature_selection_type=="SelectFromModel":
-            best_estimator=Pipeline(steps=[('scaler', search.best_estimator_['scaler']), 
+            best_estimator=Pipeline(steps=imbalanced_data_handler+[('scaler', search.best_estimator_['scaler']), 
                                    ('feature_selection',search.best_estimator_['feature_selection']),
                                    ('classifier',search.best_estimator_['feature_selection'].estimator_)])
         else:
@@ -297,8 +303,43 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         save_log("Best parameter for {}: \n result={}.".format(save_classifier_name, result))
         
 
+def get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed):
+    
+    counter = Counter(y)
+    counter_values=list(counter.values())
+    ratio=max(counter_values[0]/counter_values[1], counter_values[1]/counter_values[0])
+    
+    handler=[]
+    if (imbalanced_data_strategy!="IgnoreDataImbalance") and ratio>2:
+        if imbalanced_data_strategy=="SMOTE":
+            smote=SMOTE(random_state=random_seed, sampling_strategy=0.8) 
+            handler=[("sampler", smote)]
 
-# In[ ]:
+        elif imbalanced_data_strategy=="BorderlineSMOTE":
+            smote=BorderlineSMOTE(random_state=random_seed, sampling_strategy=0.8)
+            handler=[("sampler", smote)]
+
+        elif imbalanced_data_strategy=="SVMSMOTE":
+            smote=SVMSMOTE(random_state=random_seed, sampling_strategy=0.8)
+            handler=[("sampler", smote)]
+
+        elif imbalanced_data_strategy=="RandomOverSampler":
+            OverSampler=RandomOverSampler(random_state=random_seed, sampling_strategy=0.8)
+            handler=[("sampler", OverSampler)]
+
+        elif imbalanced_data_strategy=="SMOTE_RandomUnderSampler":
+            smote=SMOTE(random_state=random_seed, sampling_strategy=0.4) 
+            underSampler = RandomUnderSampler(sampling_strategy=0.8)
+            handler=[("smote", smote), ("underSampler", underSampler)]
+
+        else:
+            raise Exception("Undefined strategy for dealing with imblanced data. Possible strategy: \{\"SMOTE\", \"BorderlineSMOTE\", \"SVMSMOTE\", \"RandomOverSampler\", \"SMOTE_RandomUnderSampler\"\}.")
+    
+    save_log("\nImbalanced data strategy={}, Data counter={}, imbalanced data handler={}.".format(imbalanced_data_strategy, counter, handler))
+    
+    return handler
+
+
 
 
 def get_all_classifier_list():
@@ -418,12 +459,12 @@ def explore_different_models(X, y, save_results_path):
 
 
 
-def main_find_best_model(train_X, train_Y, save_results_path, feature_selection_type):
+def main_find_best_model(train_X, train_Y, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Step 1: Tuning the hyperparameters for different feature selection and classifier models.
     """
     save_log("\n\n == Tuning the hyperparameters for different feature selection and classifier models... ==")
-    hyperparameter_tuning_for_different_models(train_X, train_Y, save_results_path, feature_selection_type)
+    hyperparameter_tuning_for_different_models(train_X, train_Y, save_results_path, feature_selection_type, imbalanced_data_strategy)
     arrange_hyperparameter_searching_results(save_results_path)
 
 
@@ -600,7 +641,8 @@ def predict(trained_model_path, test_X, test_Y, save_results_path):
 """
 Main function for binary classification: train and predict.
 """
-def perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, feature_selection_type):
+def perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, 
+                                        feature_selection_type, imbalanced_data_strategy):
     """
     Find the best model from a list of models, and retrained it on the whole training dataset.
     """
@@ -612,7 +654,7 @@ def perform_binary_classification_train(train_data, feature_columns, label_colum
     save_log("\n-train_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(train_data.shape, len(feature_columns), label_column))
 
     #Step 1: find the best hyperparameters.
-    best_model_name=main_find_best_model(train_X, train_Y, save_results_path, feature_selection_type)
+    best_model_name=main_find_best_model(train_X, train_Y, save_results_path, feature_selection_type, imbalanced_data_strategy)
     #best_model_name="AnovaTest_ExtraTrees"
         
     #Step 2: retrain the selected best model on the whole training dataset.
@@ -680,13 +722,15 @@ def perform_harmonization(train_data, test_data_dict, feature_columns, harmoniza
 """"
 Main: call the function and perform the classification.
 """
-def perform_binary_classification(task_name, task_settings, other_settings=None):
-    if other_settings is not None:
-        print("\n === settings={} =======".format(other_settings))
+def perform_binary_classification(task_name, task_settings, basic_settings):
+    print("\n === Basic settings={} =======".format(basic_settings))
         
     save_log("\n =================== task_name={} ===============".format(task_name))
       
     #read the settings
+    feature_selection_type=basic_settings["feature_selection_method"]
+    imbalanced_data_strategy=basic_settings["imbalanced_data_strategy"]
+    
     train_excel_path=task_settings["train_excel_path"]
     test_excel_path_dict=task_settings["test_excel_path_dict"]
     train_data=task_settings["train_data"]
@@ -694,7 +738,6 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
     feature_columns=task_settings["feature_columns"]
     label_column=task_settings["label_column"]
     base_results_path=task_settings["base_results_path"]
-    feature_selection_type=get_basic_settings()["feature_selection_method"]
     save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), label_column, base_results_path))
 
     # create the folder to save results.
@@ -703,12 +746,12 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
         os.makedirs(save_results_path) 
     
     ## Perform ComBat harmonization
-    harmonization_method=other_settings["harmonization_method"]
-    harmonization_label=other_settings["harmonization_label"]
-    harmonization_ref_batch=other_settings["harmonization_ref_batch"]
+    harmonization_method=basic_settings["harmonization_method"]
+    harmonization_label=basic_settings["harmonization_label"]
+    harmonization_ref_batch=basic_settings["harmonization_ref_batch"]
     if harmonization_method!="withoutComBat":
         if harmonization_label=="is_3T":
-            modality_list=other_settings["feature_filter_dict"]["modality_list"]
+            modality_list=basic_settings["feature_filter_dict"]["modality_list"]
             print("\n modality_list={}".format(modality_list))
             for modality in modality_list:
                 harmonization_label_for_modality=harmonization_label+"_"+modality
@@ -730,7 +773,7 @@ def perform_binary_classification(task_name, task_settings, other_settings=None)
     
     
     ## train the model
-    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, feature_selection_type)
+    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, feature_selection_type, imbalanced_data_strategy)
 
     ## make predictions
     test_data_dict=dict(**{"train_data":train_data}, **test_data_dict)    
