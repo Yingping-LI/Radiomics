@@ -327,7 +327,7 @@ def get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed):
             OverSampler=RandomOverSampler(random_state=random_seed, sampling_strategy=0.8)
             handler=[("sampler", OverSampler)]
 
-        elif imbalanced_data_strategy=="SMOTE_RandomUnderSampler":
+        elif imbalanced_data_strategy=="SMOTE-RandomUnderSampler":
             smote=SMOTE(random_state=random_seed, sampling_strategy=0.4) 
             underSampler = RandomUnderSampler(sampling_strategy=0.8)
             handler=[("smote", smote), ("underSampler", underSampler)]
@@ -646,7 +646,7 @@ def perform_binary_classification_train(train_data, feature_columns, label_colum
     """
     Find the best model from a list of models, and retrained it on the whole training dataset.
     """
-    save_log("****** Begin to find and train the best model to predict {} ....... ******".format(label_column))
+    save_log("\n\n****** Begin to find and train the best model to predict {} ....... ******".format(label_column))
     
     ## Data preprocessing.
     train_X=train_data[feature_columns]
@@ -715,7 +715,41 @@ def perform_harmonization(train_data, test_data_dict, feature_columns, harmoniza
         
     return harmonized_train_data, harmonized_test_data_dict
 
-
+#=======================================================================================
+def get_highly_correlated_features(dataframe, original_feature_columns, save_results_path=None, threshold=0.95):
+    """
+    Split the feature columns to two classes:
+    - highly_correlated_columns: features which has a correlation coefficient > 0.95 (threshold) with one of the other features.
+    - relatively_indepedent_columns: the other features which are not in the highly correlated feature list.
+    
+    See more here:
+    https://www.projectpro.io/recipes/drop-out-highly-correlated-features-in-python
+    """
+    
+    features=dataframe[original_feature_columns]
+      
+    #save the correlation matrix plot
+    if save_results_path is not None:
+        with plt.style.context({'axes.labelsize':24,
+                        'xtick.labelsize':24,
+                        'ytick.labelsize':24}):
+            plt.subplots(figsize=(100, 80))
+            sns.heatmap(features.corr(), annot=False, cmap='YlGnBu')
+            plt.tight_layout()
+            plt.savefig(os.path.join(save_results_path, 'feature_correlation_matrix.jpeg'))
+            plt.show()
+        
+    #Calculate the upper trigular matrix.    
+    cor_matrix = features.corr().abs()
+    upper_tri = cor_matrix.where(np.triu(np.ones(cor_matrix.shape), k=1).astype(np.bool))
+    
+    #Calculate the highly correlated feature columns and the relatively indepent feature columns.
+    highly_correlated_columns = [column for column in upper_tri.columns if any(upper_tri[column] > threshold)]
+    relatively_indepedent_columns= list(set(original_feature_columns).difference(set(highly_correlated_columns)))
+    
+    save_log("\n\nAmong the {} original features: \n-{} features are highly corelated with other features, so will be dropped. \n-{} features are kept and can be regarded as relatively indepent features.".format(len(original_feature_columns), len(highly_correlated_columns), len(relatively_indepedent_columns)))
+    
+    return highly_correlated_columns, relatively_indepedent_columns
 
 
 #=======================================================================================
@@ -744,6 +778,10 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     save_results_path=os.path.join(base_results_path, task_name)
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path) 
+        
+    #drop the highly correlated features using train data.
+    highly_correlated_columns, relatively_indepedent_columns=get_highly_correlated_features(train_data, feature_columns, save_results_path, threshold=0.95)
+    feature_columns=relatively_indepedent_columns
     
     ## Perform ComBat harmonization
     harmonization_method=basic_settings["harmonization_method"]
