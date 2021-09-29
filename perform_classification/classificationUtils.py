@@ -34,7 +34,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression, Perceptron, LassoCV
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier
-from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif
+from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif, chi2, mutual_info_classif
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 #from sklearn.pipeline import Pipeline
 from sklearn import svm, feature_selection
@@ -244,8 +244,18 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
             n_feature_selected= search.best_estimator_.transform(X).shape[1]
             
-        elif feature_selection_type=="AnovaTest": 
-            feature_selection_method=SelectKBest(score_func=f_classif) # k=n_features_to_select
+        elif feature_selection_type=="AnovaTest" or feature_selection_type=="ChiSquare" or feature_selection_type=="MutualInformation": 
+            
+            if feature_selection_type=="AnovaTest":
+                feature_selection_method=SelectKBest(score_func=f_classif) # k=n_features_to_select
+
+            elif feature_selection_type=="ChiSquare":
+                feature_selection_method=SelectKBest(score_func=chi2)
+
+            elif feature_selection_type=="MutualInformation":
+                feature_selection_method=SelectKBest(score_func=mutual_info_classif) 
+                
+            
             pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler),  
                                        ('feature_selection',feature_selection_method),
                                        ('classifier',classifier_model)])
@@ -347,7 +357,7 @@ def get_all_classifier_list():
     List of the models considered for comparison.
     """
     
-    feature_selection_method_list=["RFE", "RFECV", "AnovaTest", "SelectFromModel", "PCA"]
+    feature_selection_method_list=["RFE", "RFECV", "AnovaTest", "ChiSquare", "MutualInformation", "SelectFromModel", "PCA"]
     classifier_list=["SVM", "Perceptron", "LogisticRegression", "RandomForest", "DecisionTree",
                      "ExtraTrees", "LightGBM", "GradientBoosting", "XGBClassifier"]
     

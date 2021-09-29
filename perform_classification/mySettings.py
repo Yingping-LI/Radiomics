@@ -14,7 +14,7 @@ import os
 #                         "square", "squareroot", "logarithm", "exponential", "lbp-3D-m2", "lbp-3D-m1", "lbp-3D-k",
 #                         "wavelet-LLH", "wavelet-LHL", "wavelet-LHH", "wavelet-HLL", "wavelet-HLH", "wavelet-HHL", "wavelet-HHH", "wavelet-LLL",],
 #                     - "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"]
-# - "feature_selection_method": {"RFECV","RFE", AnovaTest, SelectFromModel, PCA}
+# - "feature_selection_method": {"RFECV","RFE", AnovaTest, SelectFromModel, PCA, ChiSquare, MutualInformation}
 #                     Note that: AnovaTest is very fast and effective.
 # - "imbalanced_data_strategy":  {"SMOTE", "BorderlineSMOTE", "SVMSMOTE", "RandomOverSampler", "SMOTE-RandomUnderSampler", "IgnoreDataImbalance"}
 # - "harmonization_method": {"withoutComBat", "parametric_ComBat", "nonParametric_ComBat, "noEB_ComBat"}
