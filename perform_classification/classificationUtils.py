@@ -28,6 +28,8 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 # For feature selection and classifier models
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.decomposition import PCA
 from lightgbm import LGBMClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -76,6 +78,8 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
     classification_models["SVM"]=svm.SVC()
     classification_models["Perceptron"]=Perceptron()
     classification_models["LogisticRegression"]=LogisticRegression()
+    classification_models["GaussianNB"]=GaussianNB()
+    classification_models["LinearDiscriminantAnalysis"]=LinearDiscriminantAnalysis()
     classification_models["RandomForest"]=RandomForestClassifier()     
     classification_models["DecisionTree"]=DecisionTreeClassifier()
     classification_models["ExtraTrees"]=ExtraTreesClassifier() 
@@ -118,7 +122,14 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         "random_state":[random_seed]} 
     ]
     
+    param_grids["GaussianNB"]=[{
+    }]
         
+    param_grids["LinearDiscriminantAnalysis"]=[{
+        'solver': ["svd", "lsqr", "eigen"]
+    }]
+          
+    
     param_grids["RandomForest"]=[{
         'n_estimators':  [10, 20, 40, 60, 80, 100],
         'max_features': ['auto', 'sqrt'],
@@ -206,7 +217,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         
         ### Scaler
         Scaler=StandardScaler()  # MinMaxScaler(feature_range=(0,1))
-        cross_val = StratifiedKFold(n_splits=5)
+        #cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
         imbalanced_data_handler = get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed)
         
         #--------------------- begin hyperparameter tuning process--------------------------------
@@ -358,8 +369,8 @@ def get_all_classifier_list():
     """
     
     feature_selection_method_list=["RFE", "RFECV", "AnovaTest", "ChiSquare", "MutualInformation", "SelectFromModel", "PCA"]
-    classifier_list=["SVM", "Perceptron", "LogisticRegression", "RandomForest", "DecisionTree",
-                     "ExtraTrees", "LightGBM", "GradientBoosting", "XGBClassifier"]
+    classifier_list=["SVM", "Perceptron", "LogisticRegression", "GaussianNB", "LinearDiscriminantAnalysis",
+                     "RandomForest", "DecisionTree", "ExtraTrees", "LightGBM", "GradientBoosting", "XGBClassifier"]
     
     classifiers=[]
     for feature_selection_type in feature_selection_method_list:
