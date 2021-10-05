@@ -217,7 +217,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         
         ### Scaler
         Scaler=StandardScaler()  # MinMaxScaler(feature_range=(0,1))
-        #cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
+        cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
         imbalanced_data_handler = get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed)
         
         #--------------------- begin hyperparameter tuning process--------------------------------
