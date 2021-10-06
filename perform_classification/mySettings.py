@@ -16,7 +16,7 @@ import os
 #                     - "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"]
 # - "feature_selection_method": {"RFECV","RFE", AnovaTest, SelectFromModel, PCA, ChiSquare, MutualInformation}
 #                     Note that: AnovaTest is very fast and effective.
-# - "imbalanced_data_strategy":  {"SMOTE", "BorderlineSMOTE", "SVMSMOTE", "RandomOverSampler", "SMOTE-RandomUnderSampler", "IgnoreDataImbalance"}
+# - "imbalanced_data_strategy":  {"SMOTE", "BorderlineSMOTE", "SVMSMOTE", "RandomOverSampler", "RandomUnderSampler", "SMOTE-RandomUnderSampler", "IgnoreDataImbalance"}
 # - "harmonization_method": {"withoutComBat", "parametric_ComBat", "nonParametric_ComBat, "noEB_ComBat"}
 # - "harmonization_label": {"Tissue.source.site", "is_3T"}, column name of the setting label used to do the harmonization.
 # - "random_seed": int number, used for reproducibility of the results.

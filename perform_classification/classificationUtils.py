@@ -333,24 +333,28 @@ def get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed):
     handler=[]
     if (imbalanced_data_strategy!="IgnoreDataImbalance") and ratio>2:
         if imbalanced_data_strategy=="SMOTE":
-            smote=SMOTE(random_state=random_seed, sampling_strategy=0.8) 
+            smote=SMOTE(random_state=random_seed, sampling_strategy="auto") 
             handler=[("sampler", smote)]
 
         elif imbalanced_data_strategy=="BorderlineSMOTE":
-            smote=BorderlineSMOTE(random_state=random_seed, sampling_strategy=0.8)
+            smote=BorderlineSMOTE(random_state=random_seed, sampling_strategy="auto")
             handler=[("sampler", smote)]
 
         elif imbalanced_data_strategy=="SVMSMOTE":
-            smote=SVMSMOTE(random_state=random_seed, sampling_strategy=0.8)
+            smote=SVMSMOTE(random_state=random_seed, sampling_strategy="auto")
             handler=[("sampler", smote)]
 
         elif imbalanced_data_strategy=="RandomOverSampler":
-            OverSampler=RandomOverSampler(random_state=random_seed, sampling_strategy=0.8)
+            OverSampler=RandomOverSampler(random_state=random_seed, sampling_strategy="auto")
             handler=[("sampler", OverSampler)]
+            
+        elif imbalanced_data_strategy=="RandomUnderSampler":
+            underSampler=RandomUnderSampler(random_state=random_seed, sampling_strategy="auto")
+            handler=[("sampler", underSampler)]
 
         elif imbalanced_data_strategy=="SMOTE-RandomUnderSampler":
             smote=SMOTE(random_state=random_seed, sampling_strategy=0.4) 
-            underSampler = RandomUnderSampler(sampling_strategy=0.8)
+            underSampler = RandomUnderSampler(random_state=random_seed, sampling_strategy=0.8)
             handler=[("smote", smote), ("underSampler", underSampler)]
 
         else:
