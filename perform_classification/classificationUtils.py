@@ -552,6 +552,25 @@ def plot_ROC_curve(y_true, predicted_prob, save_results_path):
     plt.show()
     
     
+def plot_PR_curve(y_true, predicted_prob, save_results_path):
+    """
+    Plot the Precision-Recall curve.
+    """
+    # calculate the precision, recall values and AUC
+    precisions, recalls, thresholds = metrics.precision_recall_curve(y_true, predicted_prob)
+    save_log("thresholds={}".format(thresholds))
+    auc_PR = metrics.auc(recalls, precisions)
+    
+    #plot the precision-recall curve.
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
+    ax.plot(recalls, precisions, color='darkorange', lw=3, label='area = %0.2f' % auc_PR)
+    ax.set(xlabel='Recall', ylabel="Precision", title="Precision-Recall curve")     
+    ax.legend(loc="lower left")
+    ax.grid(True)
+    plt.savefig(os.path.join(save_results_path, "PR_curve.jpeg"))         
+    plt.show()
+
+    
 def select_threshold(y_true, predicted_prob, save_results_path):
     
     #Calculate the evaluation metrics.
@@ -604,10 +623,15 @@ def calculate_metrics(y_true, predicted, predicted_prob):
     Calcualte the metrics for evaluation.
     """
     result_metrics={}
-    # metrics based on the predicted_prob.
-    result_metrics["AUC"]=metrics.roc_auc_score(y_true, predicted_prob)
+    ## metrics based on the predicted_prob.
+    result_metrics["AUC_ROC"]=metrics.roc_auc_score(y_true, predicted_prob)
+    result_metrics["AveragePrecisions"]=metrics.average_precision_score(y_true, predicted_prob)
     
-    # metrics based on the predicted labels.
+    #Use AUC function to calculate the area under the curve of precision recall curve.
+    precisions, recalls, thresholds = metrics.precision_recall_curve(y_true, predicted_prob)
+    result_metrics["AUC_PR"]=metrics.auc(recalls, precisions)
+    
+    ## metrics based on the predicted labels.
     result_metrics["accuracy"]=metrics.accuracy_score(y_true, predicted)
     result_metrics["recall"]=metrics.recall_score(y_true, predicted)
     result_metrics["precision"]=metrics.precision_score(y_true, predicted)
@@ -640,8 +664,9 @@ def predict(trained_model_path, test_X, test_Y, save_results_path):
     #calculate the evaluation metrics.
     result_metrics=None
     if test_Y is not None:
-        #ROC curve
+        #ROC curve and Precision-Recall curve
         plot_ROC_curve(test_Y, predicted_prob, save_results_path)
+        plot_PR_curve(test_Y, predicted_prob, save_results_path)
 
         #explore the threshold
         threshold=select_threshold(test_Y, predicted_prob, save_results_path)
@@ -695,7 +720,7 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, fe
     save_results_path=os.path.dirname(trained_model_path)
     
     for description, test_data in test_data_dict.items():
-        save_log("\n- Predict for {}: \n-test_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(description, test_data.shape, len(feature_columns), label_column))
+        save_log("\n- Predict for {}: \n-data.shape={} \n-len(feature_columns)={} \n-label_column={} \n-value_count=\n{}".format(description, test_data.shape, len(feature_columns), label_column, test_data[label_column].value_counts()))
         test_X=test_data[feature_columns]
         test_Y=test_data[label_column] if label_column in test_data.columns else None
 
