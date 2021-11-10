@@ -231,7 +231,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
             randomsearch_param_grids=dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
-            search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
+            search = searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].n_features_
             
         elif feature_selection_type=="RFECV": 
@@ -241,7 +241,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
             randomsearch_param_grids={"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}
 
-            search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
+            search = searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].n_features_
             
         elif feature_selection_type=="SelectFromModel": 
@@ -252,7 +252,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
            
             randomsearch_param_grids=dict(**{"feature_selection__max_features": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
-            search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
+            search = searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
             n_feature_selected= search.best_estimator_.transform(X).shape[1]
             
         elif feature_selection_type=="AnovaTest" or feature_selection_type=="ChiSquare" or feature_selection_type=="MutualInformation": 
@@ -273,9 +273,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
             randomsearch_param_grids=dict(**{"feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
-            randomsearch_param_grids=[dict(**{"feature_selection__k": feature_number_for_selection}, **param_grid_classifier) for param_grid_classifier in param_grid_classifier_list]
-            
-            search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1).fit(X, y)
+            search =searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].k
             
         elif feature_selection_type=="PCA":
@@ -286,7 +284,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
 
             randomsearch_param_grids=dict(**{"feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
 
-            search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1).fit(X, y)
+            search = searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].n_components
 
         else:
@@ -327,6 +325,18 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         save_pickle(result, save_txt_path)
         save_log("Best parameter for {}: \n result={}.".format(save_classifier_name, result))
         
+
+def searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed, searchCV_method="gridSearchCV"):
+    """
+    Choose from the gridSearchCV and randomSearchCV;
+    """
+    if searchCV_method=="gridSearchCV":
+        SearchCV_= GridSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, scoring="roc_auc", verbose=1, return_train_score=True)
+        
+    elif searchCV_method=="randomSearchCV":
+        SearchCV_= RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1, return_train_score=True)
+        
+    return SearchCV_
 
         
 def plot_GridSearch_results(grid, save_image_path=None):
