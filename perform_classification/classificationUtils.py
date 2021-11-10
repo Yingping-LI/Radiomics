@@ -52,6 +52,10 @@ from imblearn.pipeline import Pipeline
 ## feature selection
 from probatus.feature_elimination import ShapRFECV
 
+## data imputation
+from sklearn.impute import SimpleImputer, MissingIndicator
+from sklearn.pipeline import FeatureUnion
+
 #import function from the self-defined utils
 import sys
 sys.path.append("../")
@@ -216,6 +220,12 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         save_log("\n\n ======Exploring the hyperparameters for feature_selection_method={}, classifier={}. =========".format(feature_selection_type, classfier_name))
         start_time = time()
         
+        ### Data imputation transformer
+        imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='constant', fill_value=0))])
+#        imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='mean'))])
+#         imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='mean')),
+#                                                                 ('indicators', MissingIndicator(features="missing-only"))])
+        
         ### Scaler
         Scaler=StandardScaler()  # MinMaxScaler(feature_range=(0,1))
         cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
@@ -225,8 +235,9 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         ### define feature selection function.
         if feature_selection_type=="RFE":
             feature_selection_method=RFE(estimator=classifier_model, step=5) #, n_features_to_select=20
-            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
-                                       ('feature_selection',feature_selection_method)])
+            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
+                                +imbalanced_data_handler
+                                +[('scaler', Scaler), ('feature_selection',feature_selection_method)])
             #save_log("Possible hyperparameters for {} pipeline: \n {}".format(classfier_name, pipeline.get_params().keys()))
             
             randomsearch_param_grids=dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
@@ -236,8 +247,9 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="RFECV": 
             feature_selection_method=RFECV(estimator=classifier_model, step=5, min_features_to_select=20) 
-            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
-                                       ('feature_selection',feature_selection_method)])
+            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
+                                +imbalanced_data_handler
+                                +[('scaler', Scaler), ('feature_selection',feature_selection_method)])
             
             randomsearch_param_grids={"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}
 
@@ -246,8 +258,9 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="SelectFromModel": 
             feature_selection_method=SelectFromModel(estimator=classifier_model) #max_features=20
-            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
-                                       ('feature_selection',feature_selection_method)])
+            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
+                                +imbalanced_data_handler
+                                +[('scaler', Scaler), ('feature_selection',feature_selection_method)])
             
            
             randomsearch_param_grids=dict(**{"feature_selection__max_features": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
@@ -267,9 +280,11 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
                 feature_selection_method=SelectKBest(score_func=mutual_info_classif) 
                 
             
-            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler),  
-                                       ('feature_selection',feature_selection_method),
-                                       ('classifier',classifier_model)])
+            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
+                                +imbalanced_data_handler
+                                +[('scaler', Scaler),  
+                                  ('feature_selection',feature_selection_method),
+                                  ('classifier',classifier_model)])
             
             randomsearch_param_grids=dict(**{"feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
@@ -278,9 +293,11 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="PCA":
             feature_selection_method=PCA()
-            pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler),
-                                       ('feature_selection',feature_selection_method),
-                                       ('classifier',classifier_model)])
+            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
+                                +imbalanced_data_handler
+                                +[('scaler', Scaler),
+                                  ('feature_selection',feature_selection_method),
+                                  ('classifier',classifier_model)])
 
             randomsearch_param_grids=dict(**{"feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
 
