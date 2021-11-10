@@ -90,47 +90,48 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
 
     ##======  hyperparameters  =======
     param_grids=dict()
-    param_grids["SVM"]=[{
+    param_grids["SVM"]={
         "kernel":["linear", "poly", "rbf", "sigmoid"],
-        "C":[0.5, 1, 1.5, 2],
+        #"penalty": ["l1", "l2"],
+        "C":[0.1, 0.5, 1, 1.5, 2, 10],
         "gamma":["scale"],
         "class_weight":["balanced"],
         "random_state":[random_seed]
-    }]
+    }
     
-    param_grids["Perceptron"]=[{
+    param_grids["Perceptron"]={
         "penalty": ["l1", "l2", "elasticnet", None],
         "alpha":[0.001, 0.0001, 0.00001],
         "class_weight":["balanced"],
         "random_state":[random_seed]
-    }]
+    }
     
-    param_grids["LogisticRegression"]=[
-        ## l1 penalty
-        {"penalty": ["l1"],
-        "C":[0.5, 1, 1.5, 2],
-        "solver": ["liblinear", "saga"],
-        "class_weight":["balanced"],
-        #"max_iter": [500],
-        "random_state":[random_seed]},
+    param_grids["LogisticRegression"]={
+#         ## l1 penalty
+#         "penalty": ["l1"],
+#         "C":[0.5, 1, 1.5, 2],
+#         "solver": ["liblinear", "saga"],
+#         "class_weight":["balanced"],
+#         #"max_iter": [500],
+#         "random_state":[random_seed]},
         ## l2 penalty
-        {"penalty": ["l2"], #, 'none'
+        "penalty": ["l2"], #, 'none'
         "C":[0.5, 1, 1.5, 2],
         "solver": ["newton-cg", "lbfgs", "sag", "saga"],
         "class_weight":["balanced"],
         #"max_iter": [500],
         "random_state":[random_seed]} 
-    ]
     
-    param_grids["GaussianNB"]=[{
-    }]
+    
+    param_grids["GaussianNB"]={
+    }
         
-    param_grids["LinearDiscriminantAnalysis"]=[{
+    param_grids["LinearDiscriminantAnalysis"]={
         'solver': ["svd", "lsqr", "eigen"]
-    }]
+    }
           
     
-    param_grids["RandomForest"]=[{
+    param_grids["RandomForest"]={
         'n_estimators':  [10, 20, 40, 60, 80, 100],
         'max_features': ['auto', 'sqrt'],
         'max_depth':   [5, 10, 20, 30, 40, 50],
@@ -138,9 +139,9 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         'min_samples_leaf': [1, 2, 5, 10],
         'bootstrap': [True, False],
         "random_state":[random_seed]
-    }]
+    }
     
-    param_grids["DecisionTree"]=[{
+    param_grids["DecisionTree"]={
         "criterion": ["gini", "entropy"],
         "max_depth":  [5, 10, 20, 30, 40, 50],
         "min_samples_split": [2, 5, 10],
@@ -148,10 +149,10 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         "random_state":[random_seed],
         "class_weight":["balanced"],
         "random_state":[random_seed]
-    }]
+    }
         
         
-    param_grids["ExtraTrees"]=[{
+    param_grids["ExtraTrees"]={
         "n_estimators":[10, 20, 40, 60, 80, 100],
         "criterion": ["gini", "entropy"],
         'max_depth':  [5, 10, 20, 30, 40, 50],
@@ -160,10 +161,10 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         'max_features': ['auto', 'sqrt', "log2"],
         "class_weight":["balanced", "balanced_subsample"],
         "random_state":[random_seed]
-    }]
+    }
         
     
-    param_grids["LightGBM"]=[{
+    param_grids["LightGBM"]={
         "application": ["binary"],
         "boosting": ["gbdt", "rf", "dart", "goss"], 
         #"num_boost_round": [50, 100, 200], 
@@ -175,9 +176,9 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         "reg_lambda": [0.001, 0.01, 0.1, 0.2, 0.3],
         "verbose": [-1],
         "random_state":[random_seed]
-    }]
+    }
         
-    param_grids["XGBClassifier"]=[{
+    param_grids["XGBClassifier"]={
         "n_estimators":  [10, 20, 40, 60, 80, 100],
         'max_depth':  [5, 10, 20, 30, 40, 50],
         "learning_rate": [0.001, 0.01, 0.1],
@@ -192,10 +193,10 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         "use_label_encoder": [False],
         "eval_metric": ["logloss"], 
         "random_state":[random_seed]
-    }]
+    }
     
     
-    param_grids["GradientBoosting"]=[{
+    param_grids["GradientBoosting"]={
         "n_estimators": [10, 20, 40, 60, 80, 100],
         'max_depth':  [5, 10, 20, 30, 40, 50],
         "learning_rate": [0.001, 0.01, 0.1],
@@ -205,10 +206,10 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5, 10],
         "random_state":[random_seed]
-    }]
+    }
     
     ## feature numbers for random search
-    feature_number_for_selection=[10, 30, 50, 100]
+    feature_number_for_selection=[20, 50, 100, 150, 200, 250, 300]
     
     ## ============ Models =================
     for classfier_name, classifier_model in classification_models.items():
@@ -228,8 +229,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
                                        ('feature_selection',feature_selection_method)])
             #save_log("Possible hyperparameters for {} pipeline: \n {}".format(classfier_name, pipeline.get_params().keys()))
             
-            param_grid_feature_selection_list=[{"feature_selection__estimator__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
-            randomsearch_param_grids=[dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **param_grid_feature_selection) for param_grid_feature_selection in param_grid_feature_selection_list]
+            randomsearch_param_grids=dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].n_features_
@@ -239,7 +239,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
                                        ('feature_selection',feature_selection_method)])
             
-            randomsearch_param_grids=[{"feature_selection__estimator__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
+            randomsearch_param_grids={"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}
 
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].n_features_
@@ -249,8 +249,8 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             pipeline = Pipeline(steps=imbalanced_data_handler+[('scaler', Scaler), 
                                        ('feature_selection',feature_selection_method)])
             
-            param_grid_feature_selection_list=[{"feature_selection__estimator__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
-            randomsearch_param_grids=[dict(**{"feature_selection__max_features": feature_number_for_selection}, **param_grid_feature_selection) for param_grid_feature_selection in param_grid_feature_selection_list]
+           
+            randomsearch_param_grids=dict(**{"feature_selection__max_features": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=2).fit(X, y)
             n_feature_selected= search.best_estimator_.transform(X).shape[1]
@@ -271,7 +271,8 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
                                        ('feature_selection',feature_selection_method),
                                        ('classifier',classifier_model)])
             
-            param_grid_classifier_list=[{"classifier__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
+            randomsearch_param_grids=dict(**{"feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            
             randomsearch_param_grids=[dict(**{"feature_selection__k": feature_number_for_selection}, **param_grid_classifier) for param_grid_classifier in param_grid_classifier_list]
             
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1).fit(X, y)
@@ -283,8 +284,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
                                        ('feature_selection',feature_selection_method),
                                        ('classifier',classifier_model)])
 
-            param_grid_classifier_list=[{"classifier__"+key: item for key, item in param_grid_dict.items()} for param_grid_dict in param_grids[classfier_name]]
-            randomsearch_param_grids=[dict(**{"feature_selection__n_components": feature_number_for_selection}, **param_grid_classifier) for param_grid_classifier in param_grid_classifier_list]
+            randomsearch_param_grids=dict(**{"feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
 
             search = RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1).fit(X, y)
             n_feature_selected=search.best_estimator_["feature_selection"].n_components
@@ -294,6 +294,10 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         
         
         #--------------------- end hyperparameter tuning process--------------------------------
+        ##plot the grid search results
+        save_hyperparameter_tuning_basepath=os.path.join(save_results_path, "hyperparameter_tuning")
+        mkdir(save_hyperparameter_tuning_basepath)
+        plot_GridSearch_results(search, os.path.join(save_hyperparameter_tuning_basepath, "hyperparam_tuning_"+classfier_name+".jpeg"))
         
         ### get the best estimator.
         if feature_selection_type=="SelectFromModel":
@@ -324,6 +328,62 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         save_log("Best parameter for {}: \n result={}.".format(save_classifier_name, result))
         
 
+        
+def plot_GridSearch_results(grid, save_image_path=None):
+    """
+    Plot the train/validation performance with regards to different hyperparameters. 
+    Note that, when tuning one hyperparameters, fixed the other hyperparameters to their best values achieved by GridSearch.
+    
+    Params: 
+        grid: A trained GridSearchCV object.
+        save_image_path: where to save the plots.
+        
+    See references:https://stackoverflow.com/questions/37161563/how-to-graph-grid-scores-from-gridsearchcv
+    """
+        
+    ## Results from grid search.
+    cv_results = grid.cv_results_
+    mean_train_score = cv_results['mean_train_score']
+    std_train_score = cv_results['std_train_score']
+    mean_test_score = cv_results['mean_test_score']
+    std_test_score = cv_results['std_test_score']
+
+    ## All considered parameters and their values;
+    parameter_names= list(grid.best_params_.keys())
+    parameter_grids=grid.param_grid
+    
+    ## Getting indexes of values per hyper-parameter
+    masks=[]
+    for parameter_key, parameter_value in grid.best_params_.items():
+        masks.append(list(cv_results['param_'+parameter_key].data==parameter_value))
+
+    ## Ploting results
+    fig, ax = plt.subplots(1, len(parameter_grids), sharex='none', sharey='all', figsize=(20,5))
+    #fig.suptitle('AUC by differet hyperparameters!')
+    fig.text(0.04, 0.5, 'Mean AUC', va='center', rotation='vertical')
+    for i, param in enumerate(parameter_names):
+        
+        # get the index of the experiments who have set the best values of the other hyperparameters except this specific parameter "param".
+        masks_without_this_param = np.stack(masks[:i] + masks[i+1:])
+        best_experiments_masks= masks_without_this_param.all(axis=0)
+        best_experiments_index = np.where(best_experiments_masks)[0]
+        
+        # get the results of these exeperiments and plot them.
+        x = np.array(parameter_grids[param])
+        y_train = np.array(mean_train_score[best_experiments_index])
+        e_train = np.array(std_train_score[best_experiments_index])
+        y_test = np.array(mean_test_score[best_experiments_index])
+        e_test = np.array(std_test_score[best_experiments_index])
+        
+        ax[i].errorbar(x, y=y_train, yerr=e_train, linestyle='-', marker='o',label='train' )
+        ax[i].errorbar(x, y=y_test, yerr=e_test, linestyle='--', marker='o', label='test')
+        ax[i].set_xlabel(param.upper())
+
+    plt.legend()
+    plt.savefig(save_image_path)
+    plt.show()
+    
+    
 def get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed):
     
     counter = Counter(y)
