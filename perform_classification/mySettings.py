@@ -18,7 +18,7 @@ import os
 #                     Note that: AnovaTest is very fast and effective.
 # - "imbalanced_data_strategy":  {"SMOTE", "BorderlineSMOTE", "SVMSMOTE", "RandomOverSampler", "RandomUnderSampler", "SMOTE-RandomUnderSampler", "IgnoreDataImbalance"}
 # - "harmonization_method": {"withoutComBat", "parametric_ComBat", "nonParametric_ComBat, "noEB_ComBat"}
-# - "harmonization_label": {"Tissue.source.site", "is_3T"}, column name of the setting label used to do the harmonization.
+# - "harmonization_label": {"Tissue.source.site", "is_3T", "is_3T_mostCommon"}, column name of the setting label used to do the harmonization.
 # - "random_seed": int number, used for reproducibility of the results.
 
 '''
@@ -35,7 +35,7 @@ global_basic_settings={
     "feature_selection_method":"AnovaTest",
     "imbalanced_data_strategy": "IgnoreDataImbalance", 
     "harmonization_method": "withoutComBat",
-    "harmonization_label": "Tissue.source.site", 
+    "harmonization_label": "is_3T_mostCommon", 
     "harmonization_ref_batch": None, # 1, "Henry Ford Hospital"
     "random_seed": 2021,
 }

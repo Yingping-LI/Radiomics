@@ -61,6 +61,7 @@ import sys
 sys.path.append("../")
 from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log
 from utils.harmonizationUtils import neuroComBat_harmonization, neuroComBat_harmonization_FromTraning
+from MyTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumnsTransformer
 
 from mySettings import get_basic_settings
 
@@ -73,10 +74,17 @@ random_seed=get_basic_settings()["random_seed"]
 # - from a list of models, with different feature selection methods and classifiers;
 # - using the train data and 5-folds cross-validation.
 
-def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_selection_type, imbalanced_data_strategy):
+def hyperparameter_tuning_for_different_models(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Tuning the hypperparameters for different models.
     """
+    ## harmonization settings and data for cross validation.
+    X=train_data
+    y=train_data[label_column]
+    harmonization_method=harmonization_settings["harmonization_method"]
+    harmonization_label=harmonization_settings["harmonization_label"]
+    harmonization_ref_batch=harmonization_settings["harmonization_ref_batch"]
+    
     ##====== classifiers =======
     classification_models=dict()
     classification_models["SVM"]=svm.SVC()
@@ -220,24 +228,37 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         save_log("\n\n ======Exploring the hyperparameters for feature_selection_method={}, classifier={}. =========".format(feature_selection_type, classfier_name))
         start_time = time()
         
-        ### Data imputation transformer
-        imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='constant', fill_value=0))])
-#        imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='mean'))])
-#         imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='mean')),
-#                                                                 ('indicators', MissingIndicator(features="missing-only"))])
-        
-        ### Scaler
-        Scaler=StandardScaler()  # MinMaxScaler(feature_range=(0,1))
-        cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
+            
+        ###-----List of preprocessing transformers-------
+        # Imputation
+        imputation_transformer =[('imputation', PandasSimpleImputer(strategy='constant', fill_value=0))]
+        #imputation_transformer = FeatureUnion(transformer_list=[('features', SimpleImputer(strategy='mean')),
+        #                        ('indicators', MissingIndicator(features="missing-only"))])
+    
+        # ComBat harmonization
+        if harmonization_method!="withoutComBat":
+            ComBat_transformer=ComBatTransformer(feature_columns, harmonization_label, harmonization_method, harmonization_ref_batch)
+            harmonization_transformer=[("harmonization", ComBat_transformer)]
+        else:
+            harmonization_transformer=[]
+            
+        # Imbalanced data handler
         imbalanced_data_handler = get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed)
+        
+        # Scaler
+        scaler_transformer=[('scaler', StandardScaler())]  # MinMaxScaler(feature_range=(0,1))
+        
+        ##-----
+        preprocessing_transformer_list=imputation_transformer+harmonization_transformer+[
+            ("filter_features", SelectColumnsTransformer(feature_columns))]+imbalanced_data_handler+scaler_transformer
+        
+        cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
         
         #--------------------- begin hyperparameter tuning process--------------------------------
         ### define feature selection function.
         if feature_selection_type=="RFE":
             feature_selection_method=RFE(estimator=classifier_model, step=5) #, n_features_to_select=20
-            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
-                                +imbalanced_data_handler
-                                +[('scaler', Scaler), ('feature_selection',feature_selection_method)])
+            pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
             #save_log("Possible hyperparameters for {} pipeline: \n {}".format(classfier_name, pipeline.get_params().keys()))
             
             randomsearch_param_grids=dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
@@ -247,9 +268,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="RFECV": 
             feature_selection_method=RFECV(estimator=classifier_model, step=5, min_features_to_select=20) 
-            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
-                                +imbalanced_data_handler
-                                +[('scaler', Scaler), ('feature_selection',feature_selection_method)])
+            pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
             
             randomsearch_param_grids={"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}
 
@@ -258,9 +277,7 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="SelectFromModel": 
             feature_selection_method=SelectFromModel(estimator=classifier_model) #max_features=20
-            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
-                                +imbalanced_data_handler
-                                +[('scaler', Scaler), ('feature_selection',feature_selection_method)])
+            pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
             
            
             randomsearch_param_grids=dict(**{"feature_selection__max_features": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
@@ -280,11 +297,8 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
                 feature_selection_method=SelectKBest(score_func=mutual_info_classif) 
                 
             
-            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
-                                +imbalanced_data_handler
-                                +[('scaler', Scaler),  
-                                  ('feature_selection',feature_selection_method),
-                                  ('classifier',classifier_model)])
+            pipeline = Pipeline(steps=preprocessing_transformer_list
+                                +[('feature_selection',feature_selection_method), ('classifier',classifier_model)])
             
             randomsearch_param_grids=dict(**{"feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
@@ -293,11 +307,8 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
             
         elif feature_selection_type=="PCA":
             feature_selection_method=PCA()
-            pipeline = Pipeline(steps=[("imputation_transformer", imputation_transformer)]
-                                +imbalanced_data_handler
-                                +[('scaler', Scaler),
-                                  ('feature_selection',feature_selection_method),
-                                  ('classifier',classifier_model)])
+            pipeline = Pipeline(steps=preprocessing_transformer_list
+                                +[('feature_selection',feature_selection_method), ('classifier',classifier_model)])
 
             randomsearch_param_grids=dict(**{"feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
 
@@ -316,8 +327,8 @@ def hyperparameter_tuning_for_different_models(X, y, save_results_path, feature_
         
         ### get the best estimator.
         if feature_selection_type=="SelectFromModel":
-            best_estimator=Pipeline(steps=imbalanced_data_handler+[('scaler', search.best_estimator_['scaler']), 
-                                   ('feature_selection',search.best_estimator_['feature_selection']),
+            best_estimator=Pipeline(steps=preprocessing_transformer_list
+                                    +[('feature_selection',search.best_estimator_['feature_selection']),
                                    ('classifier',search.best_estimator_['feature_selection'].estimator_)])
         else:
             best_estimator= search.best_estimator_
@@ -348,7 +359,8 @@ def searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed, searchC
     Choose from the gridSearchCV and randomSearchCV;
     """
     if searchCV_method=="gridSearchCV":
-        SearchCV_= GridSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, scoring="roc_auc", verbose=1, return_train_score=True)
+        SearchCV_= GridSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, scoring="roc_auc", verbose=1, 
+                                return_train_score=True, error_score='raise')
         
     elif searchCV_method=="randomSearchCV":
         SearchCV_= RandomizedSearchCV(pipeline, randomsearch_param_grids, cv=cross_val, n_iter=50, scoring="roc_auc", random_state=random_seed, verbose=1, return_train_score=True)
@@ -531,11 +543,14 @@ def get_different_models_from_pickle(model_basepath):
 
 
 
-def explore_different_models(X, y, save_results_path):
+def explore_different_models(train_data, feature_columns, label_column, save_results_path):
     """
     Exploring the models with different feature selection and classifiers, and show the accuracy of these models.
     """
 
+    X=train_data
+    y=train_data[label_column]
+    
     # get the models to evaluate
     models = get_different_models_from_pickle(save_results_path)
     
@@ -571,12 +586,13 @@ def explore_different_models(X, y, save_results_path):
 
 
 
-def main_find_best_model(train_X, train_Y, save_results_path, feature_selection_type, imbalanced_data_strategy):
+def main_find_best_model(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Step 1: Tuning the hyperparameters for different feature selection and classifier models.
     """
     save_log("\n\n == Tuning the hyperparameters for different feature selection and classifier models... ==")
-    hyperparameter_tuning_for_different_models(train_X, train_Y, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    hyperparameter_tuning_for_different_models(train_data, feature_columns, label_column, harmonization_settings, 
+                                               save_results_path, feature_selection_type, imbalanced_data_strategy)
     arrange_hyperparameter_searching_results(save_results_path)
 
 
@@ -584,19 +600,22 @@ def main_find_best_model(train_X, train_Y, save_results_path, feature_selection_
     Step 2: Compare the results of different feature selection and classifier models, with the best tuned hyperparameters.
     """
     save_log("\n\n == Compare the results of different feature selection and classifier models, with the best tuned hyperparameters... ==")
-    best_model_name= explore_different_models(train_X, train_Y, save_results_path)
+    best_model_name= explore_different_models(train_data, feature_columns, label_column, save_results_path)
     
     return best_model_name
 
 
 #======== Step 2: use the best model for training. =========================
 
-def retrain_the_best_model(train_X, train_Y, best_model_name, save_results_path):
+def retrain_the_best_model(train_data, feature_columns, label_column, best_model_name, save_results_path):
     """
     Retrain the best model with the whole training dataset. 
     """
     
     save_log("\nWe Retrain the model {} using the whole training dataset. ".format(best_model_name))
+    
+    train_X=train_data
+    train_Y=train_data[label_column]
     
     # fit the model on training data.
     models=get_different_models_from_pickle(save_results_path)
@@ -727,10 +746,13 @@ def calculate_metrics(y_true, predicted, predicted_prob):
     return result_metrics
     
     
-def predict(trained_model_path, test_X, test_Y, save_results_path):
+def predict(trained_model_path, test_data, feature_columns, label_column, save_results_path):
     """
     Predict the label with the trained model.
     """
+    test_X=test_data
+    test_Y=test_data[label_column] if label_column in test_data.columns else None
+    
     #make dir.
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path)
@@ -778,8 +800,8 @@ def predict(trained_model_path, test_X, test_Y, save_results_path):
 """
 Main function for binary classification: train and predict.
 """
-def perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, 
-                                        feature_selection_type, imbalanced_data_strategy):
+def perform_binary_classification_train(train_data, feature_columns, label_column, harmonization_settings,
+                                        save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Find the best model from a list of models, and retrained it on the whole training dataset.
     """
@@ -791,11 +813,11 @@ def perform_binary_classification_train(train_data, feature_columns, label_colum
     save_log("\n-train_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(train_data.shape, len(feature_columns), label_column))
 
     #Step 1: find the best hyperparameters.
-    best_model_name=main_find_best_model(train_X, train_Y, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    best_model_name=main_find_best_model(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
     #best_model_name="AnovaTest_ExtraTrees"
         
     #Step 2: retrain the selected best model on the whole training dataset.
-    trained_model_path=retrain_the_best_model(train_X, train_Y, best_model_name, save_results_path)
+    trained_model_path=retrain_the_best_model(train_data, feature_columns, label_column, best_model_name, save_results_path)
     
     return best_model_name, trained_model_path
 
@@ -808,49 +830,9 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, fe
     
     for description, test_data in test_data_dict.items():
         save_log("\n- Predict for {}: \n-data.shape={} \n-len(feature_columns)={} \n-label_column={} \n-value_count=\n{}".format(description, test_data.shape, len(feature_columns), label_column, test_data[label_column].value_counts()))
-        test_X=test_data[feature_columns]
-        test_Y=test_data[label_column] if label_column in test_data.columns else None
 
-        predict(trained_model_path, test_X, test_Y, os.path.join(save_results_path, description))
+        predict(trained_model_path, test_data, feature_columns, label_column, os.path.join(save_results_path, description))
     
-
-#=======================================================================================
-"""
-Function: perform ComBat harmonzation.
-"""
-def perform_harmonization(train_data, test_data_dict, feature_columns, harmonization_method, harmonization_label, harmonization_ref_batch):
-    print("\n\n Begin to harmonize the data....")
-    print("\n harmonization_method={}, number of features={}, harmonization_ref_batch={}.".format(harmonization_method, len(feature_columns), harmonization_ref_batch))
-        
-    # harmonization for the train data, and learn the estimates used for test data.
-    print("\n Available harmonization label for train data: \n {}.".format(train_data[harmonization_label].value_counts()))
-    train_setting_label_list=np.unique(train_data[harmonization_label])
-    harmonized_train_data, estimates, info=neuroComBat_harmonization(train_data, feature_columns, harmonization_label, harmonization_method, harmonization_ref_batch)
-    
-    #print("\n estimates['batches']={}".format(estimates['batches']))
-    #print("\n info={}".format(info))
-    
-    # harmonize the test data using the learnt estimates.
-    harmonized_test_data_dict={}
-    for description, test_data in test_data_dict.items():
-        print("\n Available harmonization label for {}: \n {}.".format(description, test_data[harmonization_label].value_counts()))
-        
-        #delete the rows whose setting labels are not in the training data.
-        test_setting_label_list=np.unique(test_data[harmonization_label])
-        abnormal_setting_label_list= list(set(test_setting_label_list).difference(set(train_setting_label_list)))
-        #print("\n train_setting_label_list={}.".format(train_setting_label_list))
-        #print("\n test_setting_label_list={}.".format(test_setting_label_list))
-        #print("\n abnormal_setting_label_list={}.\n".format(abnormal_setting_label_list))
-        if len(abnormal_setting_label_list)>0:
-            warnings.warn("Warning: will delete the data with setting labels {}, which do not exist in training dataset!!".format(abnormal_setting_label_list))
-            for abnormal_setting_label in abnormal_setting_label_list:
-                test_data.drop(test_data[test_data[harmonization_label]==abnormal_setting_label].index, inplace=True)
-        
-        #harmomize the test data;
-        harmonized_test_data, estimates_test=neuroComBat_harmonization_FromTraning(test_data, feature_columns, harmonization_label, estimates)
-        harmonized_test_data_dict[description]=harmonized_test_data
-        
-    return harmonized_train_data, harmonized_test_data_dict
 
 #=======================================================================================
 def get_highly_correlated_features(dataframe, original_feature_columns, save_results_path=None, threshold=0.95):
@@ -921,34 +903,14 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     feature_columns=relatively_indepedent_columns
     
     ## Perform ComBat harmonization
-    harmonization_method=basic_settings["harmonization_method"]
-    harmonization_label=basic_settings["harmonization_label"]
-    harmonization_ref_batch=basic_settings["harmonization_ref_batch"]
-    if harmonization_method!="withoutComBat":
-        if harmonization_label=="is_3T":
-            modality_list=basic_settings["feature_filter_dict"]["modality_list"]
-            print("\n modality_list={}".format(modality_list))
-            for modality in modality_list:
-                harmonization_label_for_modality=harmonization_label+"_"+modality
-                
-                #filter the features for this modality
-                feature_columns_for_modality=[]
-                for feature in feature_columns:
-                    if feature.startswith(modality):
-                        feature_columns_for_modality.append(feature)
-                        
-                #harmonization for this modality data
-                if len(feature_columns_for_modality)>0:
-                    train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns_for_modality, 
-                                                                 harmonization_method, harmonization_label_for_modality, 
-                                                                 harmonization_ref_batch)
-        else:
-            train_data, test_data_dict=perform_harmonization(train_data, test_data_dict, feature_columns, 
-                                                             harmonization_method, harmonization_label, harmonization_ref_batch)
-    
+    harmonization_settings={
+        "harmonization_method": basic_settings["harmonization_method"],
+        "harmonization_label": basic_settings["harmonization_label"],
+        "harmonization_ref_batch": basic_settings["harmonization_ref_batch"]
+    }   
     
     ## train the model
-    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, label_column, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
 
     ## make predictions
     test_data_dict=dict(**{"train_data":train_data}, **test_data_dict)    
