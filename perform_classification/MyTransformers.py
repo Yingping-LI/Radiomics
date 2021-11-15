@@ -46,7 +46,7 @@ class ComBatTransformer(BaseEstimator, TransformerMixin):
         return harmonized_data
     
 
-class SelectColumnsTransformer():
+class SelectColumnsTransformer(BaseEstimator, TransformerMixin):
     """
     Select columns from a data frame;
     """
