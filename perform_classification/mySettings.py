@@ -8,6 +8,7 @@ import os
 # - "task_name_list": list some tasks in the specified "experiment_class", if it is a empty list, 
 #                     then all the tasks in this experiment_class will be done!
 # - "features_for_TCGA": {"extracted_features", "public_features"}, use public features from TCIA, or use features extracted by myself.
+# - "normalization_method": "no_normalization", #{"no_normalization", "fcm", "zscore"} 
 # - "feature_filter_dict": used to control the settings to filter the features for classification.
 #                     - "modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"];
 #                     - "imageType_list": ["original", "gradient", "log-sigma-1-0-mm-3D", "log-sigma-3-0-mm-3D",
@@ -28,6 +29,7 @@ global_basic_settings={
     "experiment_class": "TCGA_IDH",
     "task_list": [], 
     "features_for_TCGA": "extracted_features",  
+    "normalization_method": "no_normalization", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
                          "imageType_list": ["exponential"],  # "exponential" for TCGA-IDH, "lbp-3D-m1" for TCGA-MGMT
                          "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"],

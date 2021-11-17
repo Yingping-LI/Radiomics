@@ -128,6 +128,8 @@ def get_feature_merge_settings_dict1():
 Merge excel files for the TCGA data.
 """
 def get_feature_merge_settings_dict():
+    normalization_method="fcm" #{"no_normalization", "fcm", "zscore"} 
+    
     basepath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
     feature_merge_settings_dict={}
     
@@ -135,14 +137,14 @@ def get_feature_merge_settings_dict():
     feature_merge_settings_dict["TCGA_extracted_features_IDH_train"]={
         #----                                   
         "excel_dict": {
-        "feature_data": basepath+"/Features/extracted_features/features_TCGA_train.xlsx",
+        "feature_data": basepath+"/Features/extracted_features/"+normalization_method+"/features_TCGA_train.xlsx",
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
         "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_IDH.xlsx"}}
     
     feature_merge_settings_dict["TCGA_extracted_features_IDH_test"]={
         #----                                   
         "excel_dict": {
-        "feature_data": basepath+"/Features/extracted_features/features_TCGA_test.xlsx",
+        "feature_data": basepath+"/Features/extracted_features/"+normalization_method+"/features_TCGA_test.xlsx",
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
         "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_IDH.xlsx"}}
     
@@ -150,14 +152,14 @@ def get_feature_merge_settings_dict():
     feature_merge_settings_dict["TCGA_extracted_features_MGMT_train"]={
         #----                                   
         "excel_dict": {
-        "feature_data": basepath+"/Features/extracted_features/features_TCGA_train.xlsx",
+        "feature_data": basepath+"/Features/extracted_features/"+normalization_method+"/features_TCGA_train.xlsx",
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
         "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_MGMT.xlsx"}}
     
     feature_merge_settings_dict["TCGA_extracted_features_MGMT_test"]={
         #----                                   
         "excel_dict": {
-        "feature_data": basepath+"/Features/extracted_features/features_TCGA_test.xlsx",
+        "feature_data": basepath+"/Features/extracted_features/"+normalization_method+"/features_TCGA_test.xlsx",
         "scanner_info": basepath+"/Features/scanner_info/Scanner_info.xlsx",
         "gene_label": basepath+"/Features/gene_label/TCGA_subtypes_MGMT.xlsx"}}
     
@@ -194,7 +196,10 @@ def get_feature_merge_settings_dict():
     
      ##=============== Add other distributions =============================
     for setting_name, feature_merge_settings in feature_merge_settings_dict.items():
-        feature_merge_settings["save_excel_path"]=basepath+"/Features/final_metadata/"+setting_name+".xlsx"
+        if "_public_features_" in setting_name:
+            feature_merge_settings["save_excel_path"]=basepath+"/Features/final_metadata/"+setting_name+".xlsx"
+        else:
+            feature_merge_settings["save_excel_path"]=basepath+"/Features/final_metadata/"+normalization_method+"/"+setting_name+".xlsx"
         feature_merge_settings["index_column_name"]="patient_id"
         feature_merge_settings["axis"]=1
         feature_merge_settings["join"]="inner"
