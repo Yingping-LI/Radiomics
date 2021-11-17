@@ -9,7 +9,7 @@ Settings for intensity normalization;
 def get_intensity_normalization_setting_dict():
     
     # base settings and base image path
-    normalization_method="fcm" #{"fcm", "zscore"} 
+    normalization_method="fcm" #{"no_normalization", "fcm", "zscore"} 
     modality_list=["t1", "t1Gd", "t2", "flair"] 
     base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
     save_normalized_image_basepath=base_dataPath+"/PreprocessedImages"     
