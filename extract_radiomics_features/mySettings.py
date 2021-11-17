@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 
 #possible values for the parameters:
 #    - "extractor_setting_file": "None" means using default settings.
@@ -88,7 +89,7 @@ def get_feature_extract_setting_dict():
     
     # base settings
     modality_list=["t1", "t1Gd", "t2", "flair"]
-    normalization_method=None  # None, "zscore"
+    normalization_method="fcm" #{"no_normalization", "fcm", "zscore"} 
         
        
     #define settings for each feature extraction.
@@ -109,13 +110,12 @@ def get_feature_extract_setting_dict():
     for setting_name, feature_extract_setting in feature_extract_setting_dict.items():
         feature_extract_setting["modality_list"]=modality_list
         feature_extract_setting["label_dict"]=get_basic_settings()["label_dict"]
+        feature_extract_setting["save_excel_path"]=os.path.join(feature_save_folder, normalization_method, "features_"+setting_name+".xlsx")
         
-        if normalization_method is not None:
-            feature_extract_setting["image_folder"]=feature_extract_setting["image_folder"]+"_"+normalization_method
-            feature_extract_setting["save_excel_path"]=feature_save_folder+"/features_"+setting_name+"_"+normalization_method+".xlsx"
-        else:
-            feature_extract_setting["save_excel_path"]=feature_save_folder+"/features_"+setting_name+".xlsx" 
-         
+        if normalization_method!="no_normalization":
+            feature_extract_setting["image_folder"]=os.path.join(base_dataPath, "PreprocessedImages", setting_name, normalization_method, normalization_method+"_normalizedImages")
+            
+        
         feature_extract_setting_dict[setting_name]=feature_extract_setting
         
     return feature_extract_setting_dict
