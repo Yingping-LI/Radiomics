@@ -16,9 +16,13 @@ def get_intensity_normalization_setting_dict():
        
     #define settings for each feature extraction.
     intensity_normalization_setting_dict={}
+#     #remove patient TCGA-06-0177 and TCGA-CS-4941 because they have unnormal image histograms.
+#     intensity_normalization_setting_dict["TCGA_all"]={
+#         "image_folder": None,
+#     }
+        
     intensity_normalization_setting_dict["TCGA_train"]={
         "image_folder": base_dataPath+"/originalData/TCGA/TCIA_Segmentation/TCGA_arranged/TCGA_train/Images",
-        #"image_folder": base_dataPath+"/originalData/temp_test",
     }
         
     intensity_normalization_setting_dict["TCGA_test"]={
