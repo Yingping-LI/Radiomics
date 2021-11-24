@@ -13,8 +13,9 @@ def get_category_data_encoder_setting_dict():
     category_data_encoder_setting_dict["encode_category_data_TCGA-IDH"]={
         "original_data_excel": base_dataPath+"/gene_label/TCGA_subtypes.xlsx",
         "save_encoded_data_excel_path":base_dataPath+"/gene_label/TCGA_subtypes_IDH.xlsx",
+        "drop_patient_id_list": ["TCGA-06-0177", "TCGA-CS-4941"],
         "category_column_list": ["Gender", "Study", "IDH.status",  "X1p.19q.codeletion"],
-        "drop_nan_column_list": ["Gender", "Study", "IDH.status",  "X1p.19q.codeletion"],
+        "drop_nan_column_list": ["IDH.status",  "X1p.19q.codeletion"], #["Gender", "Study", "IDH.status",  "X1p.19q.codeletion"],
         "column_rename_dict":{"Age..years.at.diagnosis.":"age",
                              "Gender_female":"is_female",
                              "Study_Glioblastoma multiforme":"is_GBM",
@@ -27,8 +28,9 @@ def get_category_data_encoder_setting_dict():
     category_data_encoder_setting_dict["encode_category_data_TCGA-MGMT"]={
         "original_data_excel": base_dataPath+"/gene_label/TCGA_subtypes.xlsx",
         "save_encoded_data_excel_path":base_dataPath+"/gene_label/TCGA_subtypes_MGMT.xlsx",
+        "drop_patient_id_list": ["TCGA-06-0177", "TCGA-CS-4941"],
         "category_column_list": ["Gender", "Study", "MGMT.promoter.status"],
-        "drop_nan_column_list": ["Gender", "Study", "MGMT.promoter.status"],
+        "drop_nan_column_list": ["Gender", "MGMT.promoter.status"], #["Gender", "Study", "MGMT.promoter.status"],
         "column_rename_dict":{"Age..years.at.diagnosis.":"age",
                              "Gender_female":"is_female",
                              "Study_Glioblastoma multiforme":"is_GBM",
