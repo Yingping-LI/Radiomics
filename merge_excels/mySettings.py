@@ -79,7 +79,7 @@ def get_feature_merge_settings_dict1():
 #         "gbm_subtypes": basepath+"/originalData/TCGA/TCGA_GeneData/From_TCGAbiolinks/gbm_subtype.xlsx",
 #         "lgg_subtypes": basepath+"/originalData/TCGA/TCGA_GeneData/From_TCGAbiolinks/lgg_subtype.xlsx"},
 #         #----
-#         "save_excel_path": basepath+"/Features/gene_label/TCGA_subtypes.xlsx",
+#         "save_excel_path": basepath+"/Features/gene_label/TCGA_all_subtypes.xlsx",
 #         "index_column_name": "patient_id",
 #         "axis": 0,
 #         "join": "outer"}
@@ -119,7 +119,31 @@ def get_feature_merge_settings_dict1():
         "index_column_name": "patient_id",
         "axis": 0,
         "join": "outer"}
-     
+    
+    #=============== Merge the public features of the train and test data for TCGA dataset=================== 
+    feature_merge_settings_dict["merge_public_features_all"]={
+        #----                                   
+        "excel_dict": {
+        "public_features_train": basepath+"/Features/public_features/features_TCGA_train.xlsx",
+        "public_features_test":basepath+"/Features/public_features/features_TCGA_test.xlsx"},
+        #----
+        "save_excel_path": basepath+"/Features/public_features/features_TCGA_all.xlsx",
+        "index_column_name": "patient_id",
+        "axis": 0,
+        "join": "outer"}
+    
+    #=============== Only save the gene data for the TCGA-GBM and TCGA-LGG patients ===================
+    feature_merge_settings_dict["filter_gene_data_TGCA"]={
+        #----                                   
+        "excel_dict": {
+        "gene_data": basepath+"/Features/gene_label/TCGA_all_subtypes.xlsx",
+        "public_feature_all": basepath+"/Features/public_features/features_TCGA_all.xlsx"},
+        #----
+        "save_excel_path": basepath+"/Features/gene_label/TCGA_subtypes.xlsx",
+        "index_column_name": "patient_id",
+        "axis": 1,
+        "join": "inner"}
+    
     return feature_merge_settings_dict
     
     
