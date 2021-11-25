@@ -27,10 +27,15 @@ def get_image_visualization_setting_dict():
 
     ##=============== Add other distributions =============================
     for setting_name, image_visualization_setting in image_visualization_setting_dict.items():
+        
         image_visualization_setting["normalization_method"]=normalization_method
         image_visualization_setting["modality_list"]=modality_list
         if normalization_method!="no_normalization":
             image_visualization_setting["image_folder"]=os.path.join(base_dataPath, "PreprocessedImages", setting_name, normalization_method, normalization_method+"_normalizedImages")
+            image_visualization_setting["save_visualization_folder"]=image_visualization_setting["image_folder"]+"_visualization"
+        else:
+            image_visualization_setting["save_visualization_folder"]=os.path.join(base_dataPath, "PreprocessedImages", setting_name, normalization_method, normalization_method+"_visualization")
+            
         image_visualization_setting_dict[setting_name]=image_visualization_setting   
         
     return image_visualization_setting_dict
