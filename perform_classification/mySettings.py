@@ -31,8 +31,8 @@ global_basic_settings={
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "no_normalization", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
-                         "imageType_list": ["exponential"],  # "exponential" for TCGA-IDH, "lbp-3D-m1" for TCGA-MGMT
-                         "tumor_subregion_list": ["NCR", "ED", "ET", "TC", "wholeTumor"],
+                         "imageType_list": ["original"],  # "exponential" for TCGA-IDH, "lbp-3D-m1" for TCGA-MGMT
+                         "tumor_subregion_list": ["wholeTumor"],  #["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
     "feature_selection_method":"AnovaTest",
     "imbalanced_data_strategy": "IgnoreDataImbalance", 
