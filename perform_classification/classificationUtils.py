@@ -38,7 +38,7 @@ from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier
 from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif, chi2, mutual_info_classif
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn import svm, feature_selection
 
 # For evaluation metrics
@@ -74,7 +74,7 @@ random_seed=get_basic_settings()["random_seed"]
 # - from a list of models, with different feature selection methods and classifiers;
 # - using the train data and 5-folds cross-validation.
 
-def hyperparameter_tuning_for_different_models(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
+def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Tuning the hypperparameters for different models.
     """
@@ -296,25 +296,32 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, labe
 
             elif feature_selection_type=="MutualInformation":
                 feature_selection_method=SelectKBest(score_func=mutual_info_classif) 
-                
             
-            pipeline = Pipeline(steps=preprocessing_transformer_list
-                                +[('feature_selection',feature_selection_method), ('classifier',classifier_model)])
+            # Pipeline
+            selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_columns)), ("selected_features", selected_features)])
+            pipeline = Pipeline(steps=[('features',combined_features), ('classifier',classifier_model)])           
             
-            randomsearch_param_grids=dict(**{"feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            # random search parameters
+            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
+            # grid search
             search =searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
-            n_feature_selected=search.best_estimator_["feature_selection"].k
+            n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].k
             
         elif feature_selection_type=="PCA":
             feature_selection_method=PCA()
-            pipeline = Pipeline(steps=preprocessing_transformer_list
-                                +[('feature_selection',feature_selection_method), ('classifier',classifier_model)])
-
-            randomsearch_param_grids=dict(**{"feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
+            
+            # Pipeline
+            selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_columns)), ("selected_features", selected_features)])
+            pipeline = Pipeline(steps=[('features',combined_features), ('classifier',classifier_model)]) 
+            
+            # random search parameters
+            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
 
             search = searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
-            n_feature_selected=search.best_estimator_["feature_selection"].n_components
+            n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].n_components
 
         else:
             raise Exception("Undefined feature selection function: {} !!".format(feature_selection_type))
@@ -544,7 +551,7 @@ def get_different_models_from_pickle(model_basepath):
 
 
 
-def explore_different_models(train_data, feature_columns, label_column, save_results_path):
+def explore_different_models(train_data, label_column, save_results_path):
     """
     Exploring the models with different feature selection and classifiers, and show the accuracy of these models.
     """
@@ -587,12 +594,12 @@ def explore_different_models(train_data, feature_columns, label_column, save_res
 
 
 
-def main_find_best_model(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
+def main_find_best_model(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Step 1: Tuning the hyperparameters for different feature selection and classifier models.
     """
     save_log("\n\n == Tuning the hyperparameters for different feature selection and classifier models... ==")
-    hyperparameter_tuning_for_different_models(train_data, feature_columns, label_column, harmonization_settings, 
+    hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, 
                                                save_results_path, feature_selection_type, imbalanced_data_strategy)
     arrange_hyperparameter_searching_results(save_results_path)
 
@@ -601,14 +608,14 @@ def main_find_best_model(train_data, feature_columns, label_column, harmonizatio
     Step 2: Compare the results of different feature selection and classifier models, with the best tuned hyperparameters.
     """
     save_log("\n\n == Compare the results of different feature selection and classifier models, with the best tuned hyperparameters... ==")
-    best_model_name= explore_different_models(train_data, feature_columns, label_column, save_results_path)
+    best_model_name= explore_different_models(train_data, label_column, save_results_path)
     
     return best_model_name
 
 
 #======== Step 2: use the best model for training. =========================
 
-def retrain_the_best_model(train_data, feature_columns, label_column, best_model_name, save_results_path):
+def retrain_the_best_model(train_data, label_column, best_model_name, save_results_path):
     """
     Retrain the best model with the whole training dataset. 
     """
@@ -748,7 +755,7 @@ def calculate_metrics(y_true, predicted, predicted_prob):
     return result_metrics
     
     
-def predict(trained_model_path, test_data, feature_columns, label_column, save_results_path):
+def predict(trained_model_path, test_data, label_column, save_results_path):
     """
     Predict the label with the trained model.
     """
@@ -802,7 +809,7 @@ def predict(trained_model_path, test_data, feature_columns, label_column, save_r
 """
 Main function for binary classification: train and predict.
 """
-def perform_binary_classification_train(train_data, feature_columns, label_column, harmonization_settings,
+def perform_binary_classification_train(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings,
                                         save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Find the best model from a list of models, and retrained it on the whole training dataset.
@@ -810,30 +817,28 @@ def perform_binary_classification_train(train_data, feature_columns, label_colum
     save_log("\n\n****** Begin to find and train the best model to predict {} ....... ******".format(label_column))
     
     ## Data preprocessing.
-    train_X=train_data[feature_columns]
-    train_Y=train_data[label_column]
     save_log("\n-train_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(train_data.shape, len(feature_columns), label_column))
 
     #Step 1: find the best hyperparameters.
-    best_model_name=main_find_best_model(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    best_model_name=main_find_best_model(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
     #best_model_name="AnovaTest_ExtraTrees"
         
     #Step 2: retrain the selected best model on the whole training dataset.
-    trained_model_path=retrain_the_best_model(train_data, feature_columns, label_column, best_model_name, save_results_path)
+    trained_model_path=retrain_the_best_model(train_data, label_column, best_model_name, save_results_path)
     
     return best_model_name, trained_model_path
 
     
-def perform_binary_classification_predict(trained_model_path, test_data_dict, feature_columns, label_column, save_results_path):
+def perform_binary_classification_predict(trained_model_path, test_data_dict, label_column, save_results_path):
     """
     make predictions with the trained best model.
     """
     save_results_path=os.path.dirname(trained_model_path)
     
     for description, test_data in test_data_dict.items():
-        save_log("\n- Predict for {}: \n-data.shape={} \n-len(feature_columns)={} \n-label_column={} \n-value_count=\n{}".format(description, test_data.shape, len(feature_columns), label_column, test_data[label_column].value_counts()))
+        save_log("\n- Predict for {}: \n-data.shape={}; \n-label_column={};\n-value_count=\n{}".format(description, test_data.shape, label_column, test_data[label_column].value_counts()))
 
-        predict(trained_model_path, test_data, feature_columns, label_column, os.path.join(save_results_path, description))
+        predict(trained_model_path, test_data, label_column, os.path.join(save_results_path, description))
     
 
 #=======================================================================================
@@ -891,9 +896,10 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     train_data=task_settings["train_data"]
     test_data_dict=task_settings["test_data_dict"]
     feature_columns=task_settings["feature_columns"]
+    keep_feature_columns=task_settings["keep_feature_columns"]
     label_column=task_settings["label_column"]
     base_results_path=task_settings["base_results_path"]
-    save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), label_column, base_results_path))
+    save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -keep_feature_columns={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), keep_feature_columns, label_column, base_results_path))
 
     # create the folder to save results.
     save_results_path=os.path.join(base_results_path, task_name)
@@ -912,11 +918,11 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     }   
     
     ## train the model
-    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
 
     ## make predictions
     test_data_dict=dict(**{"train_data":train_data}, **test_data_dict)    
-    perform_binary_classification_predict(trained_model_path, test_data_dict, feature_columns, label_column, save_results_path)
+    perform_binary_classification_predict(trained_model_path, test_data_dict, label_column, save_results_path)
 
 
     save_log("\nFinish classification for {}!".format(task_name))

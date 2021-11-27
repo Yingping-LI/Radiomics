@@ -27,7 +27,7 @@ Basic Settings for the code
 '''
 global_basic_settings={
     "experiment_class": "TCGA_IDH",
-    "task_list": [], 
+    "task_list": ["TCGA_1.101_isGBM_base", "TCGA_2.101_isIDHMutant_base", "TCGA_3.101_is1p19qCodeleted_base"], 
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "no_normalization", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
