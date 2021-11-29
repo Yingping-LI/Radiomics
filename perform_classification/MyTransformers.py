@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+import sys
+sys.path.append("../")
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -59,5 +60,39 @@ class SelectColumnsTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         X_copy=X.copy()
         return X_copy[self.columns]
+    
+    
+    
+class DeleteCorrColumnTransformer(BaseEstimator, TransformerMixin):
+    """
+    Delete the correlated feature columns;
+    
+    See reference:
+    https://stackoverflow.com/questions/66221834/how-to-create-a-custom-python-class-to-be-used-in-pipeline-for-dropping-highly-c
+    """
+    
+    def __init__(self, threshold):
+        self.threshold = threshold
+        self.correlated_columns = None
+
+    def fit(self, X, y=None):
+        X = pd.DataFrame(X)
+        
+        corr_matrix = X.corr()
+        correlated_features = set()
+        for i in range(len(corr_matrix.columns)):
+            for j in range(i):
+                if abs(corr_matrix.iloc[i, j]) > self.threshold:
+                    colname = corr_matrix.columns[i]
+                    correlated_features.add(colname)
+                    
+        self.correlated_features = correlated_features
+        return self
+
+    def transform(self, X, y=None):
+        
+        X_=(pd.DataFrame(X)).drop(labels=self.correlated_features, axis=1)
+       
+        return X_
     
     

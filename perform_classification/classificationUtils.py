@@ -61,7 +61,7 @@ import sys
 sys.path.append("../")
 from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log
 from utils.harmonizationUtils import neuroComBat_harmonization, neuroComBat_harmonization_FromTraning
-from MyTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumnsTransformer
+from MyTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumnsTransformer, DeleteCorrColumnTransformer
 
 from mySettings import get_basic_settings
 
@@ -249,9 +249,12 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         # Scaler
         scaler_transformer=[('scaler', RobustScaler())]  # {MinMaxScaler(feature_range=(0,1)), RobustScaler(), StandardScaler()}
         
+        # delete the highly correlated features.
+        delete_corr_features_transformer=[("del_corr_features", DeleteCorrColumnTransformer(threshold=0.95))]
+        
         ##-----
         preprocessing_transformer_list=imputation_transformer+harmonization_transformer+[
-            ("filter_features", SelectColumnsTransformer(feature_columns))]+imbalanced_data_handler+scaler_transformer
+            ("filter_features", SelectColumnsTransformer(feature_columns))]+imbalanced_data_handler+scaler_transformer+delete_corr_features_transformer
         
         cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
         
@@ -909,9 +912,9 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path) 
         
-    #drop the highly correlated features using train data.
-    highly_correlated_columns, relatively_indepedent_columns=get_highly_correlated_features(train_data, feature_columns, save_results_path, threshold=0.95)
-    feature_columns=relatively_indepedent_columns
+#     #drop the highly correlated features using train data.
+#     highly_correlated_columns, relatively_indepedent_columns=get_highly_correlated_features(train_data, feature_columns, save_results_path, threshold=0.95)
+#     feature_columns=relatively_indepedent_columns
     
     ## Perform ComBat harmonization
     harmonization_settings={
