@@ -871,7 +871,10 @@ def get_highly_correlated_features(dataframe, original_feature_columns, save_res
     
     #Calculate the highly correlated feature columns and the relatively indepent feature columns.
     highly_correlated_columns = [column for column in upper_tri.columns if any(upper_tri[column] > threshold)]
+    
+    # Notes!!! the order will be changed randomly when convert "list" to "set", so we sort the final list for reproducible results.
     relatively_indepedent_columns= list(set(original_feature_columns).difference(set(highly_correlated_columns)))
+    relatively_indepedent_columns=sorted(relatively_indepedent_columns)
     
     save_log("\n\nAmong the {} original features: \n-{} features are highly corelated with other features, so will be dropped. \n-{} features are kept and can be regarded as relatively indepent features.".format(len(original_feature_columns), len(highly_correlated_columns), len(relatively_indepedent_columns)))
     
