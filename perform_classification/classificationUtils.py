@@ -108,14 +108,14 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "C":[0.1, 0.5, 1, 1.5, 2, 10],
         "gamma":["scale"],
         "class_weight":["balanced"],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
     
     param_grids["Perceptron"]={
         "penalty": ["l1", "l2", "elasticnet", None],
         "alpha":[0.001, 0.0001, 0.00001],
         "class_weight":["balanced"],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
     
     param_grids["LogisticRegression"]={
@@ -132,15 +132,15 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "solver": ["newton-cg", "lbfgs", "sag", "saga"],
         "class_weight":["balanced"],
         #"max_iter": [500],
-        "random_state":[random_seed]} 
+        "random_state":[np.random.RandomState(random_seed)]} 
     
     
-    param_grids["GaussianNB"]={
-    }
+#     param_grids["GaussianNB"]={
+#     }
         
-    param_grids["LinearDiscriminantAnalysis"]={
-        'solver': ["svd", "lsqr", "eigen"]
-    }
+#     param_grids["LinearDiscriminantAnalysis"]={
+#         'solver': ["svd", "lsqr", "eigen"]
+#     }
           
     
     param_grids["RandomForest"]={
@@ -150,7 +150,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5, 10],
         'bootstrap': [True, False],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
     
     param_grids["DecisionTree"]={
@@ -160,7 +160,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "min_samples_leaf": [1, 2, 5, 10],
         "random_state":[random_seed],
         "class_weight":["balanced"],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
         
         
@@ -172,7 +172,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         'min_samples_leaf': [1, 2, 5, 10],
         'max_features': ['auto', 'sqrt', "log2"],
         "class_weight":["balanced", "balanced_subsample"],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
         
     
@@ -187,7 +187,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "min_data_in_leaf":  [1, 2, 5, 10, 20],
         "reg_lambda": [0.001, 0.01, 0.1, 0.2, 0.3],
         "verbose": [-1],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
         
     param_grids["XGBClassifier"]={
@@ -204,7 +204,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         'reg_lambda': [0, 1],
         "use_label_encoder": [False],
         "eval_metric": ["logloss"], 
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
     
     
@@ -217,7 +217,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "criterion": ["friedman_mse", "mse"],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5, 10],
-        "random_state":[random_seed]
+        "random_state":[np.random.RandomState(random_seed)]
     }
     
     ## feature numbers for random search
@@ -409,22 +409,22 @@ def plot_GridSearch_results(grid, save_image_path=None):
     #fig.suptitle('AUC by differet hyperparameters!')
     fig.text(0.04, 0.5, 'Mean AUC', va='center', rotation='vertical')
     for i, param in enumerate(parameter_names):
-        
-        # get the index of the experiments who have set the best values of the other hyperparameters except this specific parameter "param".
-        masks_without_this_param = np.stack(masks[:i] + masks[i+1:])
-        best_experiments_masks= masks_without_this_param.all(axis=0)
-        best_experiments_index = np.where(best_experiments_masks)[0]
-        
-        # get the results of these exeperiments and plot them.
-        x = np.array(parameter_grids[param])
-        y_train = np.array(mean_train_score[best_experiments_index])
-        e_train = np.array(std_train_score[best_experiments_index])
-        y_test = np.array(mean_test_score[best_experiments_index])
-        e_test = np.array(std_test_score[best_experiments_index])
-        
-        ax[i].errorbar(x, y=y_train, yerr=e_train, linestyle='-', marker='o',label='train' )
-        ax[i].errorbar(x, y=y_test, yerr=e_test, linestyle='--', marker='o', label='test')
-        ax[i].set_xlabel(param.upper())
+        if param!="classifier__random_state":
+            # get the index of the experiments who have set the best values of the other hyperparameters except this specific parameter "param".
+            masks_without_this_param = np.stack(masks[:i] + masks[i+1:])
+            best_experiments_masks= masks_without_this_param.all(axis=0)
+            best_experiments_index = np.where(best_experiments_masks)[0]
+
+            # get the results of these exeperiments and plot them.
+            x = np.array(parameter_grids[param])
+            y_train = np.array(mean_train_score[best_experiments_index])
+            e_train = np.array(std_train_score[best_experiments_index])
+            y_test = np.array(mean_test_score[best_experiments_index])
+            e_test = np.array(std_test_score[best_experiments_index])
+
+            ax[i].errorbar(x, y=y_train, yerr=e_train, linestyle='-', marker='o',label='train' )
+            ax[i].errorbar(x, y=y_test, yerr=e_test, linestyle='--', marker='o', label='test')
+            ax[i].set_xlabel(param.upper())
 
     plt.legend()
     plt.savefig(save_image_path)
