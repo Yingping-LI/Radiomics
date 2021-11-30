@@ -74,7 +74,7 @@ random_seed=get_basic_settings()["random_seed"]
 # - from a list of models, with different feature selection methods and classifiers;
 # - using the train data and 5-folds cross-validation.
 
-def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
+def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy, searchCV_method="randomSearchCV"):
     """
     Tuning the hypperparameters for different models.
     """
@@ -90,8 +90,8 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     classification_models["SVM"]=svm.SVC()
     classification_models["Perceptron"]=Perceptron()
     classification_models["LogisticRegression"]=LogisticRegression()
-    classification_models["GaussianNB"]=GaussianNB()
-    classification_models["LinearDiscriminantAnalysis"]=LinearDiscriminantAnalysis()
+#     classification_models["GaussianNB"]=GaussianNB()
+#     classification_models["LinearDiscriminantAnalysis"]=LinearDiscriminantAnalysis()
     classification_models["RandomForest"]=RandomForestClassifier()     
     classification_models["DecisionTree"]=DecisionTreeClassifier()
     classification_models["ExtraTrees"]=ExtraTreesClassifier() 
@@ -309,7 +309,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
             # grid search
-            search =searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed).fit(X, y)
+            search =searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed, searchCV_method).fit(X, y)
             n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].k
             
         elif feature_selection_type=="PCA":
@@ -332,9 +332,10 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         
         #--------------------- end hyperparameter tuning process--------------------------------
         ##plot the grid search results
-        save_hyperparameter_tuning_basepath=os.path.join(save_results_path, "hyperparameter_tuning")
-        mkdir(save_hyperparameter_tuning_basepath)
-        plot_GridSearch_results(search, os.path.join(save_hyperparameter_tuning_basepath, "hyperparam_tuning_"+classfier_name+".jpeg"))
+        if searchCV_method=="gridSearchCV":
+            save_hyperparameter_tuning_basepath=os.path.join(save_results_path, "hyperparameter_tuning")
+            mkdir(save_hyperparameter_tuning_basepath)
+            plot_GridSearch_results(search, os.path.join(save_hyperparameter_tuning_basepath, "hyperparam_tuning_"+classfier_name+".jpeg"))
         
         ### get the best estimator.
         if feature_selection_type=="SelectFromModel":
@@ -365,7 +366,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         save_log("Best parameter for {}: \n result={}.".format(save_classifier_name, result))
         
 
-def searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed, searchCV_method="gridSearchCV"):
+def searchCV(pipeline, randomsearch_param_grids, cross_val, random_seed, searchCV_method):
     """
     Choose from the gridSearchCV and randomSearchCV;
     """
