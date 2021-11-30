@@ -104,17 +104,15 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     param_grids=dict()
     param_grids["SVM"]={
         "kernel":["linear", "poly", "rbf", "sigmoid"],
-        #"penalty": ["l1", "l2"],
-        "C":[0.1, 0.5, 1, 1.5, 2, 10],
-        "gamma":["scale"],
-        "class_weight":["balanced"],
+        "C":[0.01, 0.1, 1, 10, 100],
+        #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]
     }
     
     param_grids["Perceptron"]={
         "penalty": ["l1", "l2", "elasticnet", None],
-        "alpha":[0.001, 0.0001, 0.00001],
-        "class_weight":["balanced"],
+        "alpha":[0.1, 0.01, 0.001, 0.0001, 0.00001],
+        #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]
     }
     
@@ -127,11 +125,11 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
 #         #"max_iter": [500],
 #         "random_state":[random_seed]},
         ## l2 penalty
-        "penalty": ["l2"], #, 'none'
-        "C":[0.5, 1, 1.5, 2],
+        "penalty": ["l2"], 
+        "C":[0.01, 0.1, 1, 10, 100],
         "solver": ["newton-cg", "lbfgs", "sag", "saga"],
-        "class_weight":["balanced"],
         #"max_iter": [500],
+        #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]} 
     
     
@@ -144,34 +142,35 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
           
     
     param_grids["RandomForest"]={
-        'n_estimators':  [10, 20, 40, 60, 80, 100],
-        'max_features': ['auto', 'sqrt'],
-        'max_depth':   [5, 10, 20, 30, 40, 50],
+        "criterion": ["gini", "entropy"],
+         #'max_features': ['auto', 'sqrt', 'log2'],
+        'n_estimators':  [10, 20, 50, 100],
+        'max_depth':   [5, 10, 15, 20, 30],
         'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 5, 10],
+        'min_samples_leaf': [1, 2, 5],
         'bootstrap': [True, False],
         "random_state":[np.random.RandomState(random_seed)]
     }
     
     param_grids["DecisionTree"]={
         "criterion": ["gini", "entropy"],
-        "max_depth":  [5, 10, 20, 30, 40, 50],
+        "max_depth": [5, 10, 15, 20, 30],
         "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 5, 10],
-        "random_state":[random_seed],
-        "class_weight":["balanced"],
+        "min_samples_leaf": [1, 2, 5],
+        #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]
     }
         
         
     param_grids["ExtraTrees"]={
-        "n_estimators":[10, 20, 40, 60, 80, 100],
         "criterion": ["gini", "entropy"],
-        'max_depth':  [5, 10, 20, 30, 40, 50],
+        #'max_features': ['auto', 'sqrt', "log2"],
+        "n_estimators":[10, 20, 50, 100],
+        'max_depth':  [5, 10, 15, 20, 30],
         'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 5, 10],
-        'max_features': ['auto', 'sqrt', "log2"],
-        "class_weight":["balanced", "balanced_subsample"],
+        'min_samples_leaf': [1, 2, 5],
+        #"class_weight":["balanced", "balanced_subsample"],
+        'bootstrap': [True, False],
         "random_state":[np.random.RandomState(random_seed)]
     }
         
@@ -181,42 +180,43 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "boosting": ["gbdt", "rf", "dart", "goss"], 
         #"num_boost_round": [50, 100, 200], 
         "learning_rate": [0.001, 0.01, 0.1],
-        "num_leaves": [21, 31, 51], 
-        "device": ["gpu"],
-        "max_depth":  [5, 10, 20, 30, 40, 50],
-        "min_data_in_leaf":  [1, 2, 5, 10, 20],
-        "reg_lambda": [0.001, 0.01, 0.1, 0.2, 0.3],
-        "verbose": [-1],
+        "num_leaves": [11, 21, 31, 51], 
+        #"device": ["gpu"],
+        "max_depth":  [5, 10, 15, 20, 30],
+        "min_data_in_leaf": [1, 2, 5],
+        #"reg_lambda": [0.001, 0.01, 0.1, 0.2, 0.3],
+        #"verbose": [-1],
         "random_state":[np.random.RandomState(random_seed)]
     }
         
     param_grids["XGBClassifier"]={
-        "n_estimators":  [10, 20, 40, 60, 80, 100],
-        'max_depth':  [5, 10, 20, 30, 40, 50],
+        "n_estimators": [10, 20, 50, 100],
+        'max_depth':  [5, 10, 15, 20, 30],
         "learning_rate": [0.001, 0.01, 0.1],
         "booster": ["gbtree", "gblinear", "dart"],
-        #'min_child_weight': [1, 5, 10],
+        'min_child_weight': [1, 2, 5],
         #'gamma': [0.5, 1, 2, 5],
-        'subsample':  [0.3, 0.7, 1], 
+        #'subsample':  [0.3, 0.7, 1], 
         #'colsample_bytree':  [0, 0.3, 0.7, 1], 
         #'colsample_bylevel':  [0, 0.3, 0.7, 1], 
-        'reg_alpha': [0, 1],
-        'reg_lambda': [0, 1],
-        "use_label_encoder": [False],
-        "eval_metric": ["logloss"], 
+        #'reg_alpha': [0, 1],
+        #'reg_lambda': [0, 1],
+        #"use_label_encoder": [False],
+        #"eval_metric": ["logloss"], 
         "random_state":[np.random.RandomState(random_seed)]
     }
     
     
     param_grids["GradientBoosting"]={
-        "n_estimators": [10, 20, 40, 60, 80, 100],
-        'max_depth':  [5, 10, 20, 30, 40, 50],
-        "learning_rate": [0.001, 0.01, 0.1],
-        "loss": ["deviance", "exponential"],
-        "subsample":  [0.3, 0.7, 1], 
         "criterion": ["friedman_mse", "mse"],
+        #'max_features': ['auto', 'sqrt', 'log2'],
+        "n_estimators": [10, 20, 50, 100],
+        'max_depth':  [5, 10, 15, 20, 30],
+        "learning_rate": [0.001, 0.01, 0.1],
+        #"loss": ["deviance", "exponential"],
+        #"subsample":  [0.3, 0.7, 1], 
         'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 5, 10],
+        'min_samples_leaf': [1, 2, 5],
         "random_state":[np.random.RandomState(random_seed)]
     }
     
