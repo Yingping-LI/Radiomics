@@ -104,7 +104,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     param_grids=dict()
     param_grids["SVM"]={
         "kernel":["linear", "poly", "rbf", "sigmoid"],
-        "C":[0.01, 0.1, 1, 10, 100],
+        "C":[0.01, 0.1, 0.5, 1, 5, 10, 100],
         #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]
     }
@@ -126,9 +126,9 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
 #         "random_state":[random_seed]},
         ## l2 penalty
         "penalty": ["l2"], 
-        "C":[0.01, 0.1, 1, 10, 100],
+        "C":[0.01, 0.1, 0.5, 1, 5, 10, 100],
         "solver": ["newton-cg", "lbfgs", "sag", "saga"],
-        #"max_iter": [500],
+        "max_iter": [500],
         #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]} 
     
@@ -148,6 +148,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         'max_depth':   [5, 10, 15, 20, 30],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5],
+        #"class_weight":["balanced", "balanced_subsample"],
         'bootstrap': [True, False],
         "random_state":[np.random.RandomState(random_seed)]
     }
@@ -184,6 +185,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         #"device": ["gpu"],
         "max_depth":  [5, 10, 15, 20, 30],
         "min_data_in_leaf": [1, 2, 5],
+        #"is_unbalance":[True]
         #"reg_lambda": [0.001, 0.01, 0.1, 0.2, 0.3],
         #"verbose": [-1],
         "random_state":[np.random.RandomState(random_seed)]
@@ -213,8 +215,8 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "n_estimators": [10, 20, 50, 100],
         'max_depth':  [5, 10, 15, 20, 30],
         "learning_rate": [0.001, 0.01, 0.1],
-        #"loss": ["deviance", "exponential"],
-        #"subsample":  [0.3, 0.7, 1], 
+        "loss": ["deviance", "exponential"],
+        "subsample":  [0.3, 0.7, 1], 
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5],
         "random_state":[np.random.RandomState(random_seed)]
