@@ -1,31 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 
-#========================================
-# - "results_bathpath":  -TCGA: "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/ArrangeResults",
-#                        -BraTs2021: "G://PhDProjects/RadiogenomicsProjects/BraTS2021/Results/ArrangeResults"
-# - "imagetype_dict": image type chosen for extracting features.
-
-'''
-Basic Settings for the code
-'''
-global_basic_settings={
-    "results_bathpath": "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/TCGA_MGMT_site_lbp-3D-m1",
-    #"results_bathpath": "G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/TCGA_IDH_site_exponential",
-    #"results_bathpath": "G://PhDProjects/RadiogenomicsProjects/BraTS2021/Results/ArrangeResults",
-    #"G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/arrange_results_wavelet" ,
-    #"G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results/ArrangeResults",
-    "imagetype_dict": {"TCGA_IDH": "exponential",
-                       "TCGA_MGMT": "lbp-3D-m1",#"LBP-3d-m1" or "LBP-3d-m1"
-                       "BraTS2021": "lbp-3D-m1",
-                      }
-}
-
-def get_basic_settings():   
-
-    return global_basic_settings
-
+def get_arrange_results_settings_dict():
+    """
+    Settings used to arrange and plot the results;
+    """
+    basepath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results_randomseed2021"
+    
+    arrange_results_settings_dict={}
+    
+    arrange_results_settings_dict["compare_normalization_methods"]={
+        "results_basepath": os.path.join(basepath, "1-compare_normalization_methods"),
+        "groupby_column": "task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "normalization_method",
+                         "hue_order": ["no_normalization", "zscore", "fcm"]}
+    }
+    
+    return arrange_results_settings_dict
 
 
 
