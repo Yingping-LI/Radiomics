@@ -252,7 +252,8 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         scaler_transformer=[('scaler', RobustScaler())]  # {MinMaxScaler(feature_range=(0,1)), RobustScaler(), StandardScaler()}
         
         # delete the highly correlated features.
-        delete_corr_features_transformer=[("del_corr_features", DeleteCorrColumnTransformer(threshold=0.95))]
+        #delete_corr_features_transformer=[("del_corr_features", DeleteCorrColumnTransformer(threshold=0.95))]
+        delete_corr_features_transformer= []
         
         ##-----
         preprocessing_transformer_list=imputation_transformer+harmonization_transformer+[
