@@ -16,7 +16,8 @@ def get_arrange_results_settings_dict():
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "normalization_method",
-                         "hue_order": ["no_normalization", "zscore", "fcm"]}
+                         "hue_order": ["no_normalization", "zscore"] #["no_normalization", "zscore", "fcm"]
+                        }
     }
     
     return arrange_results_settings_dict
