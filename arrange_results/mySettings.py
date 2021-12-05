@@ -17,7 +17,8 @@ def get_arrange_results_settings_dict():
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "normalization_method",
-                         "hue_order": ["no_normalization", "zscore"],
+                         "rename_hue_values": {"no_normalization": "Without normalization", 
+                                               "zscore": "With Z-Score"},
                          "ncol": 2,
                          "exclude_hue_value": ["fcm"]
                         }
@@ -30,28 +31,49 @@ def get_arrange_results_settings_dict():
         "groupby_column": "base_task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "task_additional_description",
-                         "hue_order": ["WT_base", "WT_withIndicatorColumns", "NCR-TC-WT_base", "NCR-TC-WT_withIndicatorColumns", "NCR-TC-WT-ED-ET_base", "NCR-TC-WT-ED-ET_withIndicatorColumns"],
+                         "rename_hue_values": {"WT base": "WT base ", 
+                                               "WT withSubregionInfo":"WT withIndicatorColumns ", 
+                                               "NCR-TC-WT base":"NCR-TC-WT base", 
+                                               "NCR-TC-WT withSubregionInfo": "NCR-TC-WT withIndicatorColumns", 
+                                               "NCR-TC-WT-ED-ET base": "NCR-TC-WT-ED-ET base", 
+                                               "NCR-TC-WT-ED-ET withSubregionInfo":"NCR-TC-WT-ED-ET withIndicatorColumns"},
                          "ncol": 3,
-                         "exclude_hue_value": ["ShapeFeatureOnly_base", "ShapeFeatureOnly_withIndicatorColumns"]
+                         "exclude_hue_value": ["ShapeFeatureOnly base", "ShapeFeatureOnly withIndicatorColumns"]
                         }
     }
-    
-    
+     
     #====================== 3: Compare different image filters ===================================
     arrange_results_settings_dict["compare_image_filter"]={
         "results_basepath": os.path.join(basepath, "3-compare_image_filter"),
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "image_filter",
-                         "hue_order": ["exponential", "square", "lbp-3D",  "gradient", "wavelet", "original", "squareroot", "logarithm", "log-sigma-1-0-mm-3D"],
+                         "rename_hue_values": {"exponential": "Exponential", 
+                                               "square": "Square", 
+                                               "lbp-3D": "Local Binary Pattern",  
+                                               "gradient": "Gradient", 
+                                               "wavelet": "Wavelet", 
+                                               "original": "Original", 
+                                               "squareroot": "SquareRoot", 
+                                               "logarithm": "Logarithm", 
+                                               "log-sigma-1-0-mm-3D": "Laplacian of Gaussian"},
                          "ncol": 5,
                          "exclude_hue_value": ["log-sigma-3-0-mm-3D"]
                         }
     }
     
+    #====================== 4: Compare whether to add clinical info (age and sex) ===================================
+    arrange_results_settings_dict["compare_add_clinicalinfo"]={
+        "results_basepath": os.path.join(basepath, "4-compare_add_clinicalinfo"),
+        "groupby_column": "base_task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "task_additional_description",
+                         "rename_hue_values":{" withSubregionInfo": "Without clinical info",
+                                          " withAllInfo": "With clinical info"},
+                         "ncol": 2,
+                         "exclude_hue_value": []
+                        }
+    }
     return arrange_results_settings_dict
-
-
-
 
 
