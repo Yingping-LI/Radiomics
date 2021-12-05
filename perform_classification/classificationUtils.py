@@ -96,7 +96,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     classification_models["DecisionTree"]=DecisionTreeClassifier()
     classification_models["ExtraTrees"]=ExtraTreesClassifier() 
     #classification_models["LightGBM"]=LGBMClassifier()
-    classification_models["XGBClassifier"]=XGBClassifier()
+#     classification_models["XGBClassifier"]=XGBClassifier()
     classification_models["GradientBoosting"]=GradientBoostingClassifier()
     
 
