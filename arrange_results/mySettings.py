@@ -3,6 +3,7 @@
 
 import os
 
+#=================  used for "main_arrange_results.ipynb" ==================
 def get_arrange_results_settings_dict():
     """
     Settings used to arrange and plot the results;
@@ -76,4 +77,40 @@ def get_arrange_results_settings_dict():
     }
     return arrange_results_settings_dict
 
+
+
+
+
+#================ used for "main_transform_binary-multiclass_classification.ipynb" ======================
+"""
+Settings for converting three binary classification results to one multiclass classification results;
+"""
+def get_convert_binary_to_multiclass_setting_dict():
+    
+    # base path
+    base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
+    image_filter="log-sigma-1-0-mm-3D"
+    intensity_normalization="zscore"
+    random_seed=0
+    
+    results_base_path= os.path.join(base_dataPath, "Results_randomseed"+str(random_seed), image_filter, "TCGA_IDH-extracted_features-"+intensity_normalization, "withoutComBat-IgnoreDataImbalance")
+    
+    convert_binary_to_multiclass_setting_dict={}
+    
+    convert_binary_to_multiclass_setting_dict["TCGA-IDH"]={
+        # folders of the tasks.
+        "binary_task_path_dict": {"is_GBM": os.path.join(results_base_path, "TCGA_1.103_isGBM_withSubregionInfo"),
+                                  "is_IDH_mutant": os.path.join(results_base_path, "TCGA_2.103_isIDHMutant_withSubregionInfo"),
+                                  "is_1p19q_codeleted": os.path.join(results_base_path, "TCGA_3.103_is1p19qCodeleted_withSubregionInfo")},
+        # base path to save the results.
+        "save_results_basepath": results_base_path, 
+        # excel path which saves the ground truth labels;
+        "ground_truth_target_excel_dict": {"train_data": os.path.join(base_dataPath, "Features", "final_metadata", intensity_normalization, "TCGA_extracted_features_IDH_train_resplited_randomseed_"+str(random_seed)+".xlsx"),
+                                           "test_data": os.path.join(base_dataPath, "Features", "final_metadata", intensity_normalization, "TCGA_extracted_features_IDH_test_resplited_randomseed_"+str(random_seed)+".xlsx")
+                                          }
+                                           
+
+    }
+        
+    return convert_binary_to_multiclass_setting_dict
 
