@@ -18,6 +18,8 @@ from time import time
 import operator
 import joblib
 import warnings
+from numpy import sqrt
+from numpy import argmax
 from collections import Counter
 
 ## For plots
@@ -652,7 +654,7 @@ def retrain_the_best_model(train_data, label_column, best_model_name, save_resul
 #=======  Step 3: prediction with the trained best model.========================
 
 
-def plot_ROC_curve(y_true, predicted_prob, save_results_path):
+def plot_ROC_curve(y_true, predicted_prob, save_results_path, show_threshold):
     """
     Plot the ROC curve.
     """
@@ -662,17 +664,27 @@ def plot_ROC_curve(y_true, predicted_prob, save_results_path):
     save_log("thresholds={}".format(thresholds))
     roc_auc_score = metrics.auc(fpr, tpr)  
     
+    # calculate the threshold which maximize g-mean value;
+    gmeans = sqrt(tpr * (1-fpr))
+    ix = argmax(gmeans)
+    threshold=thresholds[ix]
+    max_gmeans=gmeans[ix]
+    save_log('Threshold=%f, G-Mean=%.3f' % (thresholds[ix], gmeans[ix]))
+    
     #plot the ROC curve
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
     ax.plot(fpr, tpr, color='darkorange', lw=3, label='area = %0.2f' % roc_auc_score)
-    ax.plot([0,1], [0,1], color='navy', lw=3, linestyle='--')
+    ax.plot([0,1], [0,1], color='navy', lw=3, linestyle='--', label='No Skill')
+    if show_threshold:
+        ax.scatter(fpr[ix], tpr[ix], marker='o', color='black', label='Best')
     ax.set(xlabel='False Positive Rate', ylabel="True Positive Rate (Recall)", title="Receiver Operating Characteristic")     
     ax.legend(loc="lower right")
     ax.grid(True)
     plt.savefig(os.path.join(save_results_path, "ROC_curve.jpeg"))         
     plt.show()
     
-    
+    return threshold, max_gmeans
+
 def plot_PR_curve(y_true, predicted_prob, save_results_path):
     """
     Plot the Precision-Recall curve.
@@ -719,8 +731,9 @@ def select_threshold(y_true, predicted_prob, save_results_path):
     # Choose the threshold which maximize the F1-score, if F1 is equal, then choose the one which maximizes the accuracy.
     metrics_df.sort_values(by=["F1", "accuracy"],  ascending=[False, False], inplace=True)
     best_threshold=metrics_df.index[0]
+    max_f1=metrics_df.iloc[0]["F1"]
 
-    return best_threshold
+    return best_threshold, max_f1
  
     
 def plot_confusion_matrix(y_true, predicted, save_results_path):
@@ -762,14 +775,18 @@ def calculate_metrics(y_true, predicted, predicted_prob):
     return result_metrics
     
     
-def predict(trained_model_path, test_data, label_column, save_results_path):
+def predict(trained_model_path, test_data, label_column, save_results_path, data_description, threshold_type="threshold_by_f1"):
     """
     Predict the label with the trained model.
     """
     test_X=test_data
     test_Y=test_data[label_column] if label_column in test_data.columns else None
     
+    # txt file to save the chosen threshold for the train data; the chosen threshold will be directly used for test data;
+    threshold_file=os.path.join(save_results_path, "thresholds.txt")
+    
     #make dir.
+    save_results_path=os.path.join(save_results_path, data_description)
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path)
         
@@ -789,23 +806,48 @@ def predict(trained_model_path, test_data, label_column, save_results_path):
     #calculate the evaluation metrics.
     result_metrics=None
     if test_Y is not None:
-        #ROC curve and Precision-Recall curve
-        plot_ROC_curve(test_Y, predicted_prob, save_results_path)
+        #Precision-Recall curve
         plot_PR_curve(test_Y, predicted_prob, save_results_path)
 
-        #explore the threshold
-        threshold=select_threshold(test_Y, predicted_prob, save_results_path)
-        save_log("\nThe threshold which maximize the F1 score is: {}.".format(threshold))
-
+        #explore the threshold which maximize the f1;
+        threshold_by_f1, max_f1=select_threshold(test_Y, predicted_prob, save_results_path)
+        
+        # calculate the threshold which maximize g-means or f1 score.
+        if data_description =="train_data":
+            # ROC curve with showing the best threshold
+            threshold_by_gmeans, max_gmeans=plot_ROC_curve(test_Y, predicted_prob, save_results_path, show_threshold=True)
+            
+            threshold_info={"data_description":data_description,
+                            "threshold_by_gmeans":float(threshold_by_gmeans),
+                            "max_gmeans": float(max_gmeans),
+                            "threshold_by_f1": float(threshold_by_f1),
+                            "max_f1": float(max_f1),
+                            "threshold_0.5": 0.5}
+            
+            save_log("\n Threshold info for train data: \n{}.".format(threshold_info))
+            save_dict(threshold_info, threshold_file)
+        else:
+            # ROC curve without showing the best threshold
+            plot_ROC_curve(test_Y, predicted_prob, save_results_path, show_threshold=False)
+            
+            threshold_info=load_dict(threshold_file)
+            save_log("\n Threshold info optimized from the train data: {}.".format(threshold_info))
+       
+        #the threshold used for make the decision;
+        threshold=threshold_info[threshold_type]
+        save_log("\n The threshold used: {}.".format(threshold))
+            
         #define the threshold
         predicted = predicted_prob > threshold
+        predicted_df=pd.DataFrame(data=predicted, columns=['predicted'], index=test_X.index)
+        predicted_df.to_csv(os.path.join(save_results_path, "predicted.csv"), line_terminator='\n')
 
         #plot confusion matrix
         plot_confusion_matrix(test_Y, predicted, save_results_path)
         
         #calculate and save metrics 
         result_metrics=calculate_metrics(test_Y, predicted, predicted_prob)
-        save_dict(result_metrics, os.path.join(save_results_path, "prediction_metrics.txt"))
+        save_dict({**{"threshold": threshold}, **result_metrics}, os.path.join(save_results_path, "prediction_metrics.txt"))
         save_log("Prediction results:\n{}".format(result_metrics))
         
     return result_metrics
@@ -845,7 +887,7 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, la
     for description, test_data in test_data_dict.items():
         save_log("\n- Predict for {}: \n-data.shape={}; \n-label_column={};\n-value_count=\n{}".format(description, test_data.shape, label_column, test_data[label_column].value_counts()))
 
-        predict(trained_model_path, test_data, label_column, os.path.join(save_results_path, description))
+        predict(trained_model_path, test_data, label_column, save_results_path, description)
     
 
 #=======================================================================================
