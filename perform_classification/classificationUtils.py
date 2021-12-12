@@ -535,7 +535,7 @@ def evaluate_model(model, X, y):
     Function for evaluating the model.
     """
     cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=random_seed)
-    scores = cross_val_score(model, X, y, scoring='roc_auc', cv=cv, n_jobs=-1, error_score='raise') 
+    scores = cross_val_score(model, X, y, scoring='roc_auc', cv=cv, n_jobs=-1) #, error_score='raise'
     
     return scores
 
@@ -577,6 +577,10 @@ def explore_different_models(train_data, label_column, save_results_path):
     for model_name, model in models.items():
         start_time = time()
         scores = evaluate_model(model, X, y)
+
+        # delete nan values;
+        scores=[x for x in scores if str(x) != 'nan']
+        
         time_cost=time()-start_time
         results.append((model_name, np.median(scores), np.mean(scores), np.std(scores), time_cost, scores))
         save_log('> %s: median_score= %.3f , mean_score= %.3f , std_score= %.3f, time=%.2f seconds.' % (model_name, np.median(scores), np.mean(scores), np.std(scores), time_cost))
