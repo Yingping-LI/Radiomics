@@ -40,7 +40,8 @@ from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier
 from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif, chi2, mutual_info_classif
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
-from sklearn.pipeline import Pipeline, FeatureUnion
+#from sklearn.pipeline import Pipeline
+from sklearn.pipeline import FeatureUnion
 from sklearn import svm, feature_selection
 
 # For evaluation metrics
@@ -49,7 +50,7 @@ from sklearn import metrics
 #For dealing with imbalanced data
 from imblearn.over_sampling import SMOTE, BorderlineSMOTE, SVMSMOTE, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
-#from imblearn.pipeline import Pipeline 
+from imblearn.pipeline import Pipeline 
 
 ## feature selection
 from probatus.feature_elimination import ShapRFECV
@@ -259,7 +260,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         
         ##-----
         preprocessing_transformer_list=imputation_transformer+harmonization_transformer+[
-            ("filter_features", SelectColumnsTransformer(feature_columns))]+imbalanced_data_handler+scaler_transformer+delete_corr_features_transformer
+            ("filter_features", SelectColumnsTransformer(feature_columns))]+scaler_transformer+delete_corr_features_transformer
         
         cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
         
@@ -308,7 +309,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             # Pipeline
             selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
             combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_columns)), ("selected_features", selected_features)])
-            pipeline = Pipeline(steps=[('features',combined_features), ('classifier',classifier_model)])           
+            pipeline = Pipeline(steps=[('features',combined_features)]+imbalanced_data_handler+[('classifier',classifier_model)])           
             
             # random search parameters
             randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__k": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 

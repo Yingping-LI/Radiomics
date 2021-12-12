@@ -75,6 +75,25 @@ def get_arrange_results_settings_dict():
                          "exclude_hue_value": []
                         }
     }
+    
+    
+   #====================== 5: Compare the data imbalance strategy ===================================
+    arrange_results_settings_dict["compare_data_imbalance"]={
+        "results_basepath": os.path.join(basepath, "5-compare_dataimbalance"),
+        "groupby_column": "task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "Data_imblance_strategy",
+                         "rename_hue_values":{"IgnoreDataImbalance": "Without data imbalance strategy",
+                                              "RandomOverSampler": "RandomOverSampler",
+                                              "RandomUnderSampler": "RandomUnderSampler",
+                                              "SMOTE": "SMOTE",
+                                              "SVMSMOTE": "SVMSMOTE",
+                                              "BorderlineSMOTE": "BorderlineSMOTE",
+                                              "SMOTE_RandomUnderSampler": "SMOTE and RandomUnderSampler"},
+                         "ncol": 4,
+                         "exclude_hue_value": []
+                        }
+    }
     return arrange_results_settings_dict
 
 
