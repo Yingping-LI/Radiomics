@@ -37,6 +37,8 @@ from lightgbm import LGBMClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression, Perceptron, LassoCV
 from xgboost import XGBClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier
 from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif, chi2, mutual_info_classif
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
@@ -93,14 +95,16 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     classification_models["SVM"]=svm.SVC()
     classification_models["Perceptron"]=Perceptron()
     classification_models["LogisticRegression"]=LogisticRegression()
+#     classification_models["KNeighborsClassifier"]=KNeighborsClassifier()
 #     classification_models["GaussianNB"]=GaussianNB()
 #     classification_models["LinearDiscriminantAnalysis"]=LinearDiscriminantAnalysis()
     classification_models["RandomForest"]=RandomForestClassifier()     
     classification_models["DecisionTree"]=DecisionTreeClassifier()
     classification_models["ExtraTrees"]=ExtraTreesClassifier() 
-    #classification_models["LightGBM"]=LGBMClassifier()
+#     #classification_models["LightGBM"]=LGBMClassifier()
 #     classification_models["XGBClassifier"]=XGBClassifier()
     classification_models["GradientBoosting"]=GradientBoostingClassifier()
+#     classification_models["MLPClassifier"]=MLPClassifier()
     
 
     ##======  hyperparameters  =======
@@ -135,13 +139,19 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]} 
     
-    
-#     param_grids["GaussianNB"]={
-#     }
+    param_grids["KNeighborsClassifier"]={
+        "n_neighbors":[5, 10],
+        "weights":["uniform", "distance"],
+        "algorithm":["auto", "ball_tree", "kd_tree", "brute"],
+        "p": [1, 2]
+    }
         
-#     param_grids["LinearDiscriminantAnalysis"]={
-#         'solver': ["svd", "lsqr", "eigen"]
-#     }
+    param_grids["GaussianNB"]={
+    }
+        
+    param_grids["LinearDiscriminantAnalysis"]={
+        'solver': ["svd", "lsqr", "eigen"]
+    }
           
     
     param_grids["RandomForest"]={
@@ -222,6 +232,23 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         "subsample":  [0.3, 0.7, 1], 
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 5],
+        "random_state":[np.random.RandomState(random_seed)]
+    }
+    
+    
+    param_grids["MLPClassifier"]={
+        "hidden_layer_sizes": [(100, 50, 20), (100, 50, 50, 20, 20), [50]*5, [100]*5, [100]*5+[50]*5],
+        "activation": ["relu"],
+        'solver':  ["sgd", "adam"],
+        "alpha": [0.0001, 0.001],
+        "batch_size": [5, 10],
+        "learning_rate": ["constant", "invscaling", "adaptive"], 
+        #'learning_rate_init': [0.001],
+        #'max_iter': [200],
+        #"tol": [1e-4],
+        #"momentum":[0.9],
+        "early_stopping": [True],
+        #"n_iter_no_change": [10],
         "random_state":[np.random.RandomState(random_seed)]
     }
     
@@ -490,8 +517,8 @@ def get_all_classifier_list():
     """
     
     feature_selection_method_list=["RFE", "RFECV", "AnovaTest", "ChiSquare", "MutualInformation", "SelectFromModel", "PCA"]
-    classifier_list=["SVM", "Perceptron", "LogisticRegression", "GaussianNB", "LinearDiscriminantAnalysis",
-                     "RandomForest", "DecisionTree", "ExtraTrees", "LightGBM", "GradientBoosting", "XGBClassifier"]
+    classifier_list=["SVM", "Perceptron", "LogisticRegression", "KNeighborsClassifier", "GaussianNB", "LinearDiscriminantAnalysis",
+                     "RandomForest", "DecisionTree", "ExtraTrees", "LightGBM", "GradientBoosting", "XGBClassifier", "MLPClassifier"]
     
     classifiers=[]
     for feature_selection_type in feature_selection_method_list:
