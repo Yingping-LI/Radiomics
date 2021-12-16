@@ -77,6 +77,7 @@ def get_classifiers(random_seed):
     param_grids["SVM"]={
         "kernel":["linear", "poly", "rbf", "sigmoid"],
         "C":[0.01, 0.1, 0.5, 1, 5, 10, 100],
+        "probability": [True], 
         #"class_weight":["balanced"],
         "random_state":[np.random.RandomState(random_seed)]
     }
@@ -374,6 +375,20 @@ def calculate_metrics_for_binary(y_true, predicted, predicted_prob):
        
     return result_metrics
 
+def calculate_metrics_for_multilabel(y_true, predicted, predicted_prob, average='macro'):
+    """
+    Calcualte the metrics for evaluation.
+    """
+    
+    result_metrics={}
+   
+    ## metrics based on the predicted labels.
+    result_metrics["accuracy"]=metrics.accuracy_score(y_true, predicted)
+    result_metrics["recall"]=metrics.recall_score(y_true, predicted, average=average)
+    result_metrics["precision"]=metrics.precision_score(y_true, predicted, average=average)
+    result_metrics["F1"]=metrics.f1_score(y_true, predicted, average=average)
+       
+    return result_metrics
 
 
 def get_highly_correlated_features(feature_df, save_results_path=None, threshold=0.95):
@@ -569,6 +584,42 @@ def select_threshold_for_binary(y_true, predicted_prob, save_results_path):
 
     return best_threshold, max_f1
 
+
+def select_threshold_for_multilabel(y_true, predicted_prob, save_results_path, average='macro'):
+    """
+    Select threshold which maximize the F1-score.
+    
+    Note: average is in {None, 'micro', 'macro', 'weighted', 'samples'}.
+    """
+    
+    #Calculate the evaluation metrics.
+    metrics_dict={"accuracy":[], "precision":[], "recall":[], "F1":[]}
+    thresholds=np.arange(0.1, 1, step=0.1)
+    for threshold in thresholds:
+        predicted= predicted_prob>threshold
+        
+        metrics_dict["accuracy"].append(metrics.accuracy_score(y_true, predicted))
+        metrics_dict["recall"].append(metrics.recall_score(y_true, predicted, average=average))
+        metrics_dict["precision"].append(metrics.precision_score(y_true, predicted, average=average))
+        metrics_dict["F1"].append(metrics.f1_score(y_true, predicted, average=average))
+    
+    metrics_df=pd.DataFrame(metrics_dict).set_index(pd.Index(thresholds))
+    
+    # plot the values of these metrics depending on different threshold
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4))
+    metrics_df.plot(ax=ax)
+    ax.set(xlabel='threshold', ylabel="metrics", title="Threshold Selection")
+    ax.legend(loc="lower left")
+    ax.grid(True)
+    plt.savefig(os.path.join(save_results_path, "threshold_selection.jpeg"))  
+    plt.show()
+    
+    # Choose the threshold which maximize the F1-score, if F1 is equal, then choose the one which maximizes the accuracy.
+    metrics_df.sort_values(by=["F1", "accuracy"],  ascending=[False, False], inplace=True)
+    best_threshold=metrics_df.index[0]
+    max_f1=metrics_df.iloc[0]["F1"]
+
+    return best_threshold, max_f1
 
 
 def explore_different_models(X, y, evaluate_model_function, save_results_path):

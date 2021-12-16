@@ -5,6 +5,7 @@ import os
 
 #========================================
 # - "experiment_class": {"BraTS2021",  "TCGA_IDH",  "TCGA_MGMT"}, used to control different datasets for experiments.
+# - "experiment_method": {"binary", "multilabel"}.
 # - "task_name_list": list some tasks in the specified "experiment_class", if it is a empty list, 
 #                     then all the tasks in this experiment_class will be done!
 # - "features_for_TCGA": {"extracted_features", "public_features"}, use public features from TCIA, or use features extracted by myself.
@@ -27,7 +28,8 @@ Basic Settings for the code
 '''
 global_basic_settings={
     "experiment_class": "TCGA_IDH",
-    "task_list": ["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo", "TCGA_3.103_is1p19qCodeleted_withSubregionInfo"],
+    "experiment_method": "multilabel", #"binary",
+    "task_list": ["TCGA_1000.103_multilabel_withSubregionInfo"], #["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo", "TCGA_3.103_is1p19qCodeleted_withSubregionInfo"],
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "zscore", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
