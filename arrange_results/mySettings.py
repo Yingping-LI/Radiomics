@@ -94,6 +94,26 @@ def get_arrange_results_settings_dict():
                          "exclude_hue_value": []
                         }
     }
+    
+    #====================== 6: Compare ComBat ===================================
+    arrange_results_settings_dict["compare_ComBat"]={
+        "results_basepath": os.path.join(basepath, "6-compare_ComBat"),
+        "groupby_column": "task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "ComBat_method",
+                         "rename_hue_values":{"withoutComBat": "without ComBat",
+                                              "noEB_ComBat_Tissue.source.site_refbat": "Standard ComBat (site)",
+                                              "parametric_ComBat_Tissue.source.site_refbat": "Parametric ComBat (site)",
+                                              "nonParametric_ComBat_Tissue.source.site_refbat": "Non-parametric ComBat (site)",
+                                              "noEB_ComBat_is_3T_t1_refbat": "Standard ComBat (is_3T)",
+                                              "parametric_ComBat_is_3T_t1_refbat": "Parametric ComBat (is_3T)",
+                                              "nonParametric_ComBat_is_3T_t1_refbat": "Non-parametric ComBat (is_3T)",
+                                             },
+                         "ncol": 4,
+                         "exclude_hue_value": []
+                        }
+    }
+    
     return arrange_results_settings_dict
 
 
