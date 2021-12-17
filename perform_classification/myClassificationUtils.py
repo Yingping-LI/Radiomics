@@ -353,6 +353,29 @@ def plot_confusion_matrix(y_true, predicted, save_results_path):
     
     
     
+def plot_confusion_matrix_for_multilabel(y_true, y_predicted, label_names, save_results_path):
+    """
+    Plot the confusion matrix for multi-label classification problem.
+    """
+    
+    cm = metrics.multilabel_confusion_matrix(y_true, y_predicted)
+    print("cm={}".format(cm))
+    
+    num_labels=len(label_names)
+    fig, ax = plt.subplots(1, num_labels, figsize=(6*num_labels, 6))
+    
+    for axes, label, cm_i in zip(ax.flatten(), label_names, cm):
+        heatmap=sns.heatmap(cm_i, annot=True, fmt='d', cmap=plt.cm.Blues, cbar=False, ax=axes)
+        axes.set_ylabel('True')
+        axes.set_xlabel('Predicted')
+        axes.set_title("Confusion Matrix ( " + str(label)+" )")  
+        
+    fig.tight_layout()
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.15, hspace=None)
+    plt.savefig(os.path.join(save_results_path, "confusion_matrix.jpeg"))
+    plt.show()
+    
+    
 def calculate_metrics_for_binary(y_true, predicted, predicted_prob):
     """
     Calcualte the metrics for evaluation.

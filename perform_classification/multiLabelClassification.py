@@ -285,6 +285,8 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
         predicted_df=pd.DataFrame(data=predicted, columns=['predicted'], index=test_X.index)
         predicted_df.to_csv(os.path.join(save_results_path, "predicted.csv"), line_terminator='\n')
 
+        #plot confusion matrix
+        plot_confusion_matrix_for_multilabel(test_Y, predicted, label_column, save_results_path)
         
         #calculate and save metrics 
         result_metrics=calculate_metrics_for_multilabel(test_Y, predicted, predicted_prob)
