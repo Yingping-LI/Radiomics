@@ -317,6 +317,48 @@ def plot_ROC_curve(y_true, predicted_prob, save_results_path, show_threshold):
     
     return threshold, max_gmeans
 
+
+def plot_ROC_curve_for_multilabel(y_true, y_predicted_prob, label_names, save_results_path, show_threshold=False):
+    """
+    Plot the ROC curve for multilabel classification.
+    """
+    
+    num_labels=len(label_names)
+    fig, axes = plt.subplots(1, num_labels, figsize=(6*num_labels, 6))
+    
+    for i in range(num_labels):
+        ax=axes.flatten()[i]
+        label=label_names[i]
+        y_true_i=y_true[:, i]
+        y_pred_i=y_predicted_prob[:, i].toarray()
+        
+        # calculate the fpr/tpr values and AUC
+        fpr, tpr, thresholds = metrics.roc_curve(y_true_i, y_pred_i)
+        roc_auc_score = metrics.auc(fpr, tpr)  
+        
+        # calculate the threshold which maximize g-mean value;
+        gmeans = sqrt(tpr * (1-fpr))
+        ix = argmax(gmeans)
+        threshold=thresholds[ix]
+        max_gmeans=gmeans[ix]
+        save_log('Threshold=%f, G-Mean=%.3f' % (thresholds[ix], gmeans[ix]))
+    
+        #plot the ROC curve
+        ax.plot(fpr, tpr, color='darkorange', lw=3, label='area = %0.2f' % roc_auc_score)
+        ax.plot([0,1], [0,1], color='navy', lw=3, linestyle='--', label='No Skill')
+        if show_threshold:
+            ax.scatter(fpr[ix], tpr[ix], marker='o', color='black', label='Best')
+        ax.set(xlabel='False Positive Rate', ylabel="True Positive Rate (Recall)", 
+               title="Receiver Operating Characteristic( " + str(label)+" )")     
+        ax.legend(loc="lower right")
+        ax.grid(True)
+        
+    fig.tight_layout()
+    plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.15, hspace=None)
+    plt.savefig(os.path.join(save_results_path, "ROC_curve.jpeg"))        
+    plt.show()
+    
+
 def plot_PR_curve(y_true, predicted_prob, save_results_path):
     """
     Plot the Precision-Recall curve.

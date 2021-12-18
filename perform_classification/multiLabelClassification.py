@@ -257,7 +257,9 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
     #calculate the evaluation metrics.
     result_metrics=None
     if test_Y is not None:
-
+        # Plot the ROC curve 
+        plot_ROC_curve_for_multilabel(test_Y, predicted_prob, label_column, save_results_path)
+            
         #explore the threshold which maximize the f1;
         threshold_by_f1, max_f1=select_threshold_for_multilabel(test_Y, predicted_prob, save_results_path)
         
