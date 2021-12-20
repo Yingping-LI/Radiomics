@@ -379,7 +379,7 @@ def plot_PR_curve(y_true, predicted_prob, save_results_path):
     plt.show()
     
     
-def plot_confusion_matrix(y_true, predicted, save_results_path):
+def plot_confusion_matrix(y_true, predicted, save_results_path, save_file_name="confusion_matrix.jpeg"):
     """
     Plot the confusion matrix.
     """
@@ -390,10 +390,10 @@ def plot_confusion_matrix(y_true, predicted, save_results_path):
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap=plt.cm.Blues, cbar=False)
     ax.set(xlabel="Pred", ylabel="True", title="Confusion matrix")
+    ax.set_xticklabels(labels=classes)
     ax.set_yticklabels(labels=classes)
-    plt.savefig(os.path.join(save_results_path, "confusion_matrix.jpeg"))
+    plt.savefig(os.path.join(save_results_path, save_file_name))
     plt.show()
-    
     
     
 def plot_confusion_matrix_for_multilabel(y_true, y_predicted, label_names, save_results_path):
@@ -476,6 +476,15 @@ def calculate_metrics_for_multilabel(y_true, y_predicted, y_predicted_prob, labe
         
     return result_metrics
 
+def calculate_metrics_for_multiclass(y_true, y_predicted):
+    """
+    Calcualte the metrics for multiclass classification problem.
+    """
+    
+    result_metrics={}
+    result_metrics["accuracy"]=metrics.accuracy_score(y_true, y_predicted)
+
+    return result_metrics
 
 def get_highly_correlated_features(feature_df, save_results_path=None, threshold=0.95):
     """

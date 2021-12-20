@@ -47,6 +47,7 @@ import sys
 sys.path.append("../")
 from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log
 from utils.harmonizationUtils import neuroComBat_harmonization, neuroComBat_harmonization_FromTraning
+from utils.GliomasUtils import *
 from myTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumnsTransformer, DeleteCorrColumnTransformer
 from myClassificationUtils import *
 from mySettings import get_basic_settings
@@ -292,10 +293,28 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
         
         #calculate and save metrics 
         result_metrics=calculate_metrics_for_multilabel(test_Y, predicted, predicted_prob, label_column, save_results_path)
-        save_dict({**{"threshold": threshold}, **result_metrics}, os.path.join(save_results_path, "prediction_metrics.txt"))
-        save_log("Prediction results:\n{}".format(result_metrics))
+        save_dict({**{"threshold": threshold}, **result_metrics}, os.path.join(save_results_path, "prediction_metrics_multilabel.txt"))
+        save_log("Prediction results as multilabel classification task:\n{}".format(result_metrics))
         
-    return result_metrics
+        ## == Regard the multilabel classification problem as multiclass problem (5 subtypes of gliomas tumor). ==
+        # convert gliomas status to 5 subtypes.
+        Gliomas_Subtypes_GT=pd.DataFrame(test_Y, columns=label_column)
+        Gliomas_Subtypes_pred=pd.DataFrame(predicted.toarray(), columns=label_column)
+        Gliomas_Subtypes=Gliomas_Subtypes_GT.copy()
+        Gliomas_Subtypes["GT_tumor_subtype_description"]=Gliomas_Subtypes_GT.apply(get_tumor_subtype_description, axis=1)
+        Gliomas_Subtypes["GT_tumor_tumor_subtype"]=Gliomas_Subtypes_GT.apply(get_tumor_subtype, axis=1)
+        Gliomas_Subtypes["predicted_tumor_subtype_description"]=Gliomas_Subtypes_pred.apply(get_tumor_subtype_description, axis=1)
+        Gliomas_Subtypes["predicted_tumor_subtype"]=Gliomas_Subtypes_pred.apply(get_tumor_subtype, axis=1)
+        Gliomas_Subtypes.to_csv(os.path.join(save_results_path, "predicted_multiclass_subtypes.csv"), line_terminator='\n')
+        
+        # plot confusion matrix for the 5 classes.
+        plot_confusion_matrix(Gliomas_Subtypes["GT_tumor_tumor_subtype"], Gliomas_Subtypes["predicted_tumor_subtype"], save_results_path, save_file_name="confusion_matrix_multiclass.jpeg")
+        
+        # calculate the metrics for multiclass classification.
+        result_metrics_multiclass=calculate_metrics_for_multiclass(Gliomas_Subtypes["GT_tumor_tumor_subtype"], Gliomas_Subtypes["predicted_tumor_subtype"])
+        save_dict({**{"threshold": threshold}, **result_metrics}, os.path.join(save_results_path, "prediction_metrics_multiclass.txt"))
+        save_log("Prediction results as multiclass classification task:\n{}".format(result_metrics))
+        
         
 
 
