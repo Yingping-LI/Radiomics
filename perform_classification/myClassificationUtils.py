@@ -10,7 +10,7 @@ from numpy import argmax
 from time import time
 from numpy import sqrt
 from collections import Counter
-
+from scipy import interp
 
 
 # classifiers
@@ -360,6 +360,81 @@ def plot_ROC_curve_for_multilabel(y_true, y_predicted_prob, label_names, save_re
     plt.show()
     
 
+    
+def plot_all_ROC_curves_for_multilabel(y_true, y_predicted_prob, label_names, save_results_path):
+    """
+    Plot the ROC curve for multilabel classification.
+    
+    See https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py
+    """
+    y_predicted_prob=y_predicted_prob.toarray()
+    
+    fpr_dict=dict()
+    tpr_dict=dict()
+    roc_auc_dict=dict()
+    
+    ## --- calcuate for each bianry classification problem. -------
+    num_labels=len(label_names)
+    for i in range(num_labels):
+        label=label_names[i]
+        y_true_i=y_true[:, i]
+        y_pred_i=y_predicted_prob[:, i]
+        
+        # calculate the fpr/tpr values and AUC
+        fpr, tpr, thresholds = metrics.roc_curve(y_true_i, y_pred_i)
+        roc_auc_score = metrics.auc(fpr, tpr)  
+        
+        # save the fpr/tpr/AUC in the dict.
+        fpr_dict[label]=fpr
+        tpr_dict[label]=tpr
+        roc_auc_dict[label]=roc_auc_score
+   
+
+    ## --- calculate the macro averaage. ----------
+    # aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr_dict[key] for key in fpr_dict.keys()]))
+
+    # Then interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for key in fpr_dict.keys():
+        mean_tpr += interp(all_fpr, fpr_dict[key], tpr_dict[key])
+        
+    mean_tpr /= num_labels
+
+    fpr_dict["macro"] = all_fpr
+    tpr_dict["macro"] = mean_tpr
+    roc_auc_dict["macro"] = metrics.auc(fpr_dict["macro"], tpr_dict["macro"])
+    
+    ## ---- calculate the micro average. --------
+    fpr_dict["micro"], tpr_dict["micro"], _ = metrics.roc_curve(y_true.ravel(), y_predicted_prob.ravel())
+    roc_auc_dict["micro"] = metrics.auc(fpr_dict["micro"], tpr_dict["micro"]) 
+    
+    ## ----- Plot the ROC curve. -------------
+    
+    plt.figure(figsize=(8, 6))
+    i=0
+    colors=["aqua", "darkorange", "cornflowerblue", "deeppink", "navy"]
+    for label, auc in roc_auc_dict.items():
+        fpr=fpr_dict[label]
+        tpr=tpr_dict[label]
+        if label in ["micro", "macro"]:
+            plt.plot(fpr, tpr,  color=colors[i],  linestyle=":",  lw=4, label=label+"-average ROC curve (area = {0:0.2f})".format(roc_auc_dict[label]))
+        else:
+            plt.plot(fpr, tpr,  color=colors[i],  lw=2,  label="ROC curve for {0} (area = {1:0.2f})".format(label, roc_auc_dict[label]))
+            
+        
+        i=i+1
+        
+    plt.plot([0, 1], [0, 1], "k--", lw=2)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Receiver Operating Characteristic Curves")
+    plt.legend(loc="lower right")
+    plt.savefig(os.path.join(save_results_path, "ROC_curves_all.jpeg"))  
+    plt.show()
+        
 def plot_PR_curve(y_true, predicted_prob, save_results_path):
     """
     Plot the Precision-Recall curve.
