@@ -291,7 +291,7 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
         plot_confusion_matrix_for_multilabel(test_Y, predicted, label_column, save_results_path)
         
         #calculate and save metrics 
-        result_metrics=calculate_metrics_for_multilabel(test_Y, predicted, predicted_prob)
+        result_metrics=calculate_metrics_for_multilabel(test_Y, predicted, predicted_prob, label_column, save_results_path)
         save_dict({**{"threshold": threshold}, **result_metrics}, os.path.join(save_results_path, "prediction_metrics.txt"))
         save_log("Prediction results:\n{}".format(result_metrics))
         

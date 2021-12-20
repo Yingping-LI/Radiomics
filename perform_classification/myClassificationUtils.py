@@ -37,6 +37,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 # For evaluation metrics
 from sklearn import metrics
+from sklearn.metrics import classification_report
 
 ## For plots
 import seaborn as sns
@@ -440,19 +441,39 @@ def calculate_metrics_for_binary(y_true, predicted, predicted_prob):
        
     return result_metrics
 
-def calculate_metrics_for_multilabel(y_true, predicted, predicted_prob, average='macro'):
+def calculate_metrics_for_multilabel(y_true, y_predicted, y_predicted_prob, label_names, save_results_path):
     """
     Calcualte the metrics for evaluation.
     """
     
+    ## Calculate the metrics for each binary problem.
+    binary_result_metrics={}
+    num_labels=len(label_names) 
+    for i in range(num_labels):
+        label=label_names[i]
+        y_true_i=y_true[:, i]
+        y_pred_i=y_predicted[:, i].toarray()
+        y_pred_prob_i=y_predicted_prob[:, i].toarray()
+        binary_result_metrics[label]=calculate_metrics_for_binary(y_true_i, y_pred_i, y_pred_prob_i)
+        
+    binary_result_metrics_df=pd.DataFrame(binary_result_metrics).transpose()  
+    save_log("\n\n-Binary prediction metrics:\n{}".format(binary_result_metrics_df))
+      
+    ## Calcualte the classification reports;
+    overall_classification_report=classification_report(y_true, y_predicted, target_names=label_names, output_dict=True)
+    classification_report_df=pd.DataFrame(overall_classification_report).transpose()
+    save_log("\n\n-Classification report:\n{}".format(classification_report_df))
+    
+    ## save the results
+    excel_writer = pd.ExcelWriter(os.path.join(save_results_path, "prediction_metrics.xlsx"))
+    binary_result_metrics_df.to_excel(excel_writer,sheet_name='binary_result_metrics')
+    classification_report_df.to_excel(excel_writer,sheet_name='classification_report')
+    excel_writer.save()  
+
+    ## Calculate some other overall metrics for the multi-label problem
     result_metrics={}
-   
-    ## metrics based on the predicted labels.
-    result_metrics["accuracy"]=metrics.accuracy_score(y_true, predicted)
-    result_metrics["recall"]=metrics.recall_score(y_true, predicted, average=average)
-    result_metrics["precision"]=metrics.precision_score(y_true, predicted, average=average)
-    result_metrics["F1"]=metrics.f1_score(y_true, predicted, average=average)
-       
+    result_metrics["overall_accuracy"]=metrics.accuracy_score(y_true, y_predicted)
+        
     return result_metrics
 
 
