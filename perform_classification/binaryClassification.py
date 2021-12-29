@@ -43,7 +43,7 @@ from sklearn.pipeline import FeatureUnion
 #import function from the self-defined utils
 import sys
 sys.path.append("../")
-from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log
+from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log, traversalDir_FirstDir
 from utils.harmonizationUtils import neuroComBat_harmonization, neuroComBat_harmonization_FromTraning
 from myTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumnsTransformer, DeleteCorrColumnTransformer
 from myClassificationUtils import *
@@ -446,6 +446,36 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
         "harmonization_label": basic_settings["harmonization_label"],
         "harmonization_ref_batch": basic_settings["harmonization_ref_batch"]
     }   
+    
+    ## -----If using the prediction results of the former classifiers in the classifier chain;-----
+    if "former_classifiers" in task_settings.keys():
+        use_true_for_train=False
+        
+        former_classifiers=task_settings["former_classifiers"]
+        for former_label, former_task in former_classifiers.items():
+            former_task_basepath=os.path.join(base_results_path, former_task)
+            former_task_resultfolder=traversalDir_FirstDir(former_task_basepath)[0]
+            
+            # Train data: use the true/predicted label of the former classifiers in the classifier chain.
+            if use_true_for_train:
+                train_data[former_label+"_CC"]=train_data[former_label]
+            else: 
+                former_task_predicted_excel=os.path.join(former_task_basepath, former_task_resultfolder, "train_data", "predicted.csv")
+                former_task_predicted_data=pd.read_csv(former_task_predicted_excel, header=0, index_col=0)
+                train_data[former_label+"_CC"]=former_task_predicted_data["predicted"].astype('int')
+                
+            
+            # Train data: use the predicted label of the former classifiers in the classifier chain.
+            for description, test_data in test_data_dict.items():
+                former_task_predicted_excel=os.path.join(former_task_basepath, former_task_resultfolder, description, "predicted.csv")
+                former_task_predicted_data=pd.read_csv(former_task_predicted_excel, header=0, index_col=0)
+                test_data[former_label+"_CC"]=former_task_predicted_data["predicted"].astype('int')
+                test_data_dict[description]=test_data
+                
+        #add the labels of the former classifiers into the features
+        former_classifiers_labels=[former_label+"_CC" for former_label, former_task in former_classifiers.items()]
+        keep_feature_columns=keep_feature_columns+former_classifiers_labels    
+    #----------------------------------------------------     
     
     ## train the model
     best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)

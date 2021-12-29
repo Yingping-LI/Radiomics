@@ -126,6 +126,22 @@ def get_arrange_results_settings_dict():
                          "exclude_hue_value": []
                         }
     }
+    
+    #====================== 8: compare using classifier chain and adding the predicted GBM and IDH label ======================
+    arrange_results_settings_dict["compare_ClassifierChain"]={
+        "results_basepath": os.path.join(basepath, "7-compare_ClassifierChain"),
+        "groupby_column": "base_task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "task_additional_description",
+                         "rename_hue_values": {
+                             " withSubregionInfo":"Without GBM and IDH labels", 
+                             " CC-withPredictLable-useTrueForTrainFalse": "with predicted GBM and IDH labels",
+                             " CC-withPredictLable-useTrueForTrainTrue": "with true GBM and IDH labels"
+                         },
+                         "ncol": 3,
+                         "exclude_hue_value": []
+                        }
+    }
     return arrange_results_settings_dict
 
 

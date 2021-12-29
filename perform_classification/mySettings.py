@@ -29,7 +29,7 @@ Basic Settings for the code
 global_basic_settings={
     "experiment_class": "TCGA_IDH",
     "experiment_method": "binary", #"multilabel",
-    "task_list": ["TCGA_2.105_isIDHMutant_CC-withTrueLable", "TCGA_3.105_is1p19qCodeleted_CC-withTrueLable"], #["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo", "TCGA_3.103_is1p19qCodeleted_withSubregionInfo"], #["TCGA_1000.103_multilabel_withSubregionInfo"], 
+    "task_list": ["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.106_isIDHMutant_CC-withPredictLable", "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable"], #["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo", "TCGA_3.103_is1p19qCodeleted_withSubregionInfo"], #["TCGA_1000.103_multilabel_withSubregionInfo"], 
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "zscore", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
