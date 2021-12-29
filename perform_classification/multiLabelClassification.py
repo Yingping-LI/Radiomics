@@ -38,9 +38,9 @@ from sklearn.impute import SimpleImputer, MissingIndicator
 from sklearn.pipeline import FeatureUnion
 
 ## For multilabel classification
-#from sklearn.multioutput import ClassifierChain, MultiOutputClassifier
+from sklearn.multioutput import ClassifierChain, MultiOutputClassifier
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
-from skmultilearn.problem_transform import ClassifierChain
+#from skmultilearn.problem_transform import ClassifierChain
 
 #import function from the self-defined utils
 import sys
@@ -76,7 +76,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     feature_number_for_selection=[20, 40, 60, 80, 100]
     
     ## scoring metric
-    scoring="accuracy"
+    scoring="roc_auc"
     
     ## ============ Models =================
     for classfier_name, classifier_model in classification_models.items():
@@ -112,11 +112,11 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             pipeline = Pipeline(steps=[('scaler', RobustScaler()), ('features',feature_selection_method), ('class', classifier_model)]) 
             
             # random search parameters            
-            randomsearch_param_grids=dict(**{"classifier__features__k": feature_number_for_selection}, **{"classifier__class__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            randomsearch_param_grids=dict(**{"base_estimator__features__k": feature_number_for_selection}, **{"base_estimator__class__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
             # grid search
-            search =searchCV(ClassifierChain(classifier=pipeline), randomsearch_param_grids, scoring, cross_val, random_seed, searchCV_method).fit(X, y)
-            n_feature_selected=search.best_estimator_.classifier["features"].k
+            search =searchCV(ClassifierChain(base_estimator=pipeline), randomsearch_param_grids, scoring, cross_val, random_seed, searchCV_method).fit(X, y)
+            n_feature_selected=search.best_estimator_.base_estimator["features"].k
             
        
         else:
@@ -165,9 +165,9 @@ def evaluate_model(model, X, y):
     """
     Function for evaluating the model.
     """
-    score_name='accuracy'
+    score_name='AUC'
     cv = RepeatedKFold(n_splits=5, n_repeats=5, random_state=random_seed)
-    scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv, n_jobs=-1) #, error_score='raise'
+    scores = cross_val_score(model, X, y, scoring='roc_auc', cv=cv, n_jobs=-1) #, error_score='raise'
     
     return score_name, scores
 
@@ -252,7 +252,8 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
         predicted_prob = model.predict(test_X)
     
     #save the predicted probability.
-    predicted_prob_df=pd.DataFrame(data=predicted_prob, columns=['predicted_prob'], index=test_X.index)
+    predprob_label_column=['predicted_prob_'+ label for label in label_column]
+    predicted_prob_df=pd.DataFrame(data=predicted_prob, columns=predprob_label_column, index=test_X.index)
     predicted_prob_df.to_csv(os.path.join(save_results_path, "predicted_prob.csv"), line_terminator='\n')
     
     #calculate the evaluation metrics.
@@ -286,7 +287,8 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
             
         #define the threshold
         predicted = predicted_prob > threshold
-        predicted_df=pd.DataFrame(data=predicted, columns=['predicted'], index=test_X.index)
+        predicted_label_column=['predicted_'+ label for label in label_column]
+        predicted_df=pd.DataFrame(data=predicted, columns=predicted_label_column, index=test_X.index)
         predicted_df.to_csv(os.path.join(save_results_path, "predicted.csv"), line_terminator='\n')
 
         #plot confusion matrix
@@ -300,7 +302,7 @@ def predict(trained_model_path, test_data, feature_columns, keep_feature_columns
         ## == Regard the multilabel classification problem as multiclass problem (5 subtypes of gliomas tumor). ==
         # convert gliomas status to 5 subtypes.
         Gliomas_Subtypes_GT=pd.DataFrame(test_Y, columns=label_column)
-        Gliomas_Subtypes_pred=pd.DataFrame(predicted.toarray(), columns=label_column)
+        Gliomas_Subtypes_pred=pd.DataFrame(predicted, columns=label_column)
         Gliomas_Subtypes=Gliomas_Subtypes_GT.copy()
         Gliomas_Subtypes["GT_tumor_subtype_description"]=Gliomas_Subtypes_GT.apply(get_tumor_subtype_description, axis=1)
         Gliomas_Subtypes["GT_tumor_tumor_subtype"]=Gliomas_Subtypes_GT.apply(get_tumor_subtype, axis=1)

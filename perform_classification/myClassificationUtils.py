@@ -331,7 +331,7 @@ def plot_ROC_curve_for_multilabel(y_true, y_predicted_prob, label_names, save_re
         ax=axes.flatten()[i]
         label=label_names[i]
         y_true_i=y_true[:, i]
-        y_pred_i=y_predicted_prob[:, i].toarray()
+        y_pred_i=y_predicted_prob[:, i]
         
         # calculate the fpr/tpr values and AUC
         fpr, tpr, thresholds = metrics.roc_curve(y_true_i, y_pred_i)
@@ -367,7 +367,6 @@ def plot_all_ROC_curves_for_multilabel(y_true, y_predicted_prob, label_names, sa
     
     See https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html#sphx-glr-auto-examples-model-selection-plot-roc-py
     """
-    y_predicted_prob=y_predicted_prob.toarray()
     
     fpr_dict=dict()
     tpr_dict=dict()
@@ -527,8 +526,8 @@ def calculate_metrics_for_multilabel(y_true, y_predicted, y_predicted_prob, labe
     for i in range(num_labels):
         label=label_names[i]
         y_true_i=y_true[:, i]
-        y_pred_i=y_predicted[:, i].toarray()
-        y_pred_prob_i=y_predicted_prob[:, i].toarray()
+        y_pred_i=y_predicted[:, i] 
+        y_pred_prob_i=y_predicted_prob[:, i] 
         binary_result_metrics[label]=calculate_metrics_for_binary(y_true_i, y_pred_i, y_pred_prob_i)
         
     binary_result_metrics_df=pd.DataFrame(binary_result_metrics).transpose()  
