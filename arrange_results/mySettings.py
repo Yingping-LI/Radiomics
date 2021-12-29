@@ -114,6 +114,18 @@ def get_arrange_results_settings_dict():
                         }
     }
     
+    #====================== 7: compare using classifier chain and adding the true GBM and IDH label ======================
+    arrange_results_settings_dict["compare_CC_truelabel"]={
+        "results_basepath": os.path.join(basepath, "7-compare_CC_truelabel"),
+        "groupby_column": "base_task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "task_additional_description",
+                         "rename_hue_values": {" withSubregionInfo":"Without GBM and IDH true labels", 
+                                              " CC-withTrueLable": "with GBM and IDH true labels"},
+                         "ncol": 2,
+                         "exclude_hue_value": []
+                        }
+    }
     return arrange_results_settings_dict
 
 
