@@ -167,8 +167,8 @@ def get_convert_binary_to_multiclass_setting_dict():
     convert_binary_to_multiclass_setting_dict["TCGA-IDH"]={
         # folders of the tasks.
         "binary_task_path_dict": {"is_GBM": os.path.join(results_base_path, "TCGA_1.103_isGBM_withSubregionInfo"),
-                                  "is_IDH_mutant": os.path.join(results_base_path, "TCGA_2.103_isIDHMutant_withSubregionInfo"),
-                                  "is_1p19q_codeleted": os.path.join(results_base_path, "TCGA_3.103_is1p19qCodeleted_withSubregionInfo")},
+                                  "is_IDH_mutant": os.path.join(results_base_path, "TCGA_2.106_isIDHMutant_CC-withPredictLable"),
+                                  "is_1p19q_codeleted": os.path.join(results_base_path, "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable")},
         # base path to save the results.
         "save_results_basepath": results_base_path, 
         # excel path which saves the ground truth labels;
