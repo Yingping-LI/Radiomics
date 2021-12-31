@@ -68,8 +68,6 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     X=train_data
     y=train_data[label_column]
     harmonization_method=harmonization_settings["harmonization_method"]
-    harmonization_label=harmonization_settings["harmonization_label"]
-    harmonization_ref_batch=harmonization_settings["harmonization_ref_batch"]
     
     ##====== classifiers and parameters =======
     classification_models, param_grids=get_classifiers(random_seed)
@@ -95,7 +93,13 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         
         # ComBat harmonization
         if harmonization_method!="withoutComBat":
-            ComBat_transformer=ComBatTransformer(feature_columns, harmonization_label, harmonization_method, harmonization_ref_batch)
+            batch_col=harmonization_settings["ComBat_batch_col"]
+            categorical_cols=harmonization_settings["ComBat_categorical_cols"]
+            continuous_cols=harmonization_settings["ComBat_continuous_cols"]
+            ref_batch=harmonization_settings["ComBat_ref_batch"]
+    
+            ComBat_transformer=ComBatTransformer(feature_columns, batch_col, categorical_cols, continuous_cols, 
+                                                 harmonization_method, ref_batch)
             harmonization_transformer=[("harmonization", ComBat_transformer)]
         else:
             harmonization_transformer=[]
@@ -433,6 +437,7 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     #read the settings
     feature_selection_type=basic_settings["feature_selection_method"]
     imbalanced_data_strategy=basic_settings["imbalanced_data_strategy"]
+    harmonization_settings=basic_settings["harmonization_settings"] 
     
     train_excel_path=task_settings["train_excel_path"]
     test_excel_path_dict=task_settings["test_excel_path_dict"]
@@ -454,12 +459,6 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
 #     highly_correlated_columns, relatively_indepedent_columns=get_highly_correlated_features(train_data[feature_columns], save_results_path, threshold=0.95)
 #     feature_columns=relatively_indepedent_columns
     
-    ## Perform ComBat harmonization
-    harmonization_settings={
-        "harmonization_method": basic_settings["harmonization_method"],
-        "harmonization_label": basic_settings["harmonization_label"],
-        "harmonization_ref_batch": basic_settings["harmonization_ref_batch"]
-    }   
     
     ## -----If using the prediction results of the former classifiers in the classifier chain;-----
     if "former_classifiers" in task_settings.keys():

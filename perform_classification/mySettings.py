@@ -29,18 +29,25 @@ Basic Settings for the code
 global_basic_settings={
     "experiment_class": "TCGA_IDH",
     "experiment_method": "binary", #"multilabel",
-    "task_list": ["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.106_isIDHMutant_CC-withPredictLable", "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable"], #["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo", "TCGA_3.103_is1p19qCodeleted_withSubregionInfo"], #["TCGA_1000.103_multilabel_withSubregionInfo"], 
+    "task_list": ["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo"], 
+    #"task_list": ["TCGA_3.103_is1p19qCodeleted_withSubregionInfo"], 
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "zscore", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
-                         "imageType_list": ["gradient"],  # "original" for predicting tumor grade and IDH status, "gradient" for predicting 1p/19q.
+                         "imageType_list": ["original"],  # "original" for predicting tumor grade and IDH status, "gradient" for predicting 1p/19q.
                          "tumor_subregion_list": ["wholeTumor"], #["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
     "feature_selection_method":"AnovaTest",
     "imbalanced_data_strategy": "IgnoreDataImbalance", 
-    "harmonization_method": "withoutComBat",
-    "harmonization_label": "is_3T_mostCommon", 
-    "harmonization_ref_batch": None, # 1, "Henry Ford Hospital"
+    #---settings for harmonization---
+    "harmonization_settings": {
+        "harmonization_method": "withoutComBat",
+        "ComBat_batch_col": "is_3T_t1",
+        "ComBat_categorical_cols": None, #["is_female"],
+        "ComBat_continuous_cols": None, #["age"],
+        "ComBat_ref_batch": None, # 1, "Henry Ford Hospital"
+    },
+    #--random seed---
     "random_seed": 2021,
 }
 

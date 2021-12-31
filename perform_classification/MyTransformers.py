@@ -26,23 +26,25 @@ class ComBatTransformer(BaseEstimator, TransformerMixin):
     A custom transformer to incorporate the ComBat harmonization into the Pipeline to avoid data leakage.
     """
     
-    def __init__(self, feature_columns, setting_label_column, ComBat_method, ref_batch):  
+    def __init__(self, feature_columns, batch_col, categorical_cols, continuous_cols, ComBat_method, ref_batch):  
         #print('ComBatTransformer.__init__()...\n')
         self.feature_columns = feature_columns
-        self.setting_label_column = setting_label_column
+        self.batch_col = batch_col
+        self.categorical_cols=categorical_cols
+        self.continuous_cols=continuous_cols
         self.ComBat_method=ComBat_method
         self.ref_batch=ref_batch
     
     def fit(self, X, y = None):
         #print('ComBatTransformer.fit()...\n')
         dataframe = X.copy() # creating a copy to avoid changes to original dataset
-        _, self.estimates, _=neuroComBat_harmonization(dataframe, self.feature_columns, self.setting_label_column, self.ComBat_method, self.ref_batch)
+        _, self.estimates, _=neuroComBat_harmonization(dataframe, self.feature_columns, self.batch_col, self.categorical_cols, self.continuous_cols, self.ComBat_method, self.ref_batch)
         return self
 
     def transform(self, X, y = None):
         #print('ComBatTransformer.transform()...\n')
         dataframe = X.copy() # creating a copy to avoid changes to original dataset
-        harmonized_data, _=neuroComBat_harmonization_FromTraning(dataframe, self.feature_columns, self.setting_label_column, self.estimates)
+        harmonized_data, _=neuroComBat_harmonization_FromTraning(dataframe, self.feature_columns, self.batch_col, self.estimates)
         
         return harmonized_data
     

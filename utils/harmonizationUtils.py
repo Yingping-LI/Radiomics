@@ -6,34 +6,41 @@ from neuroCombat import neuroCombat, neuroCombatFromTraining
 Public codes for ComBat methods.
 https://github.com/Jfortin1/neuroCombat
 '''
-def neuroComBat_harmonization(dataframe, feature_columns, setting_label_column, method, ref_batch):
+def neuroComBat_harmonization(dataframe, feature_columns, batch_col, categorical_cols, continuous_cols, method, ref_batch):
     
     features=dataframe[feature_columns]
     features=transpose_dataframe(features)
-    setting_labels=dataframe[setting_label_column].to_frame()
+    
+    covars_columns_list=[batch_col]
+    if categorical_cols is not None:
+        covars_columns_list=covars_columns_list+categorical_cols
+    if continuous_cols is not None:
+        covars_columns_list=covars_columns_list+continuous_cols
+        
+    covars_columns=dataframe[covars_columns_list]
 
     if method=='parametric_ComBat':
-        harmozationResults=neuroCombat(dat=features,  covars=setting_labels,  batch_col=setting_label_column,
-           categorical_cols=None,
-           continuous_cols=None,
+        harmozationResults=neuroCombat(dat=features,  covars=covars_columns,  batch_col=batch_col,
+           categorical_cols=categorical_cols,
+           continuous_cols=continuous_cols,
            eb=True,
            parametric=True,
            mean_only=False,
            ref_batch=ref_batch)
         
     elif method=='nonParametric_ComBat':
-        harmozationResults=neuroCombat(dat=features,  covars=setting_labels,  batch_col=setting_label_column,
-           categorical_cols=None,
-           continuous_cols=None,
+        harmozationResults=neuroCombat(dat=features,  covars=covars_columns,  batch_col=batch_col,
+           categorical_cols=categorical_cols,
+           continuous_cols=continuous_cols,
            eb=True,
            parametric=False,
            mean_only=False,
            ref_batch=ref_batch)
         
     elif method=='noEB_ComBat':
-        harmozationResults=neuroCombat(dat=features,  covars=setting_labels,  batch_col=setting_label_column,
-           categorical_cols=None,
-           continuous_cols=None,
+        harmozationResults=neuroCombat(dat=features,  covars=covars_columns,  batch_col=batch_col,
+           categorical_cols=categorical_cols,
+           continuous_cols=continuous_cols,
            eb=False,
            parametric=True,
            mean_only=False,
@@ -53,13 +60,13 @@ def neuroComBat_harmonization(dataframe, feature_columns, setting_label_column, 
     return harmonized_data, estimates, info
 
 
-def neuroComBat_harmonization_FromTraning(dataframe, feature_columns, setting_label_column, estimates):
+def neuroComBat_harmonization_FromTraning(dataframe, feature_columns, batch_col, estimates):
     print("neuroComBat_harmonization_FromTraning...")
     
     features=dataframe[feature_columns]
     features=transpose_dataframe(features)
 
-    harmozationResults=neuroCombatFromTraining(dat=features, batch=dataframe[setting_label_column].values, estimates=estimates)
+    harmozationResults=neuroCombatFromTraining(dat=features, batch=dataframe[batch_col].values, estimates=estimates)
         
     harmonized_features=harmozationResults["data"]
     estimates=harmozationResults["estimates"]
