@@ -272,7 +272,7 @@ def get_imbalanced_data_handler(y, imbalanced_data_strategy, random_seed):
             underSampler=RandomUnderSampler(random_state=random_seed, sampling_strategy="auto")
             handler=[("sampler", underSampler)]
 
-        elif imbalanced_data_strategy=="SMOTE-RandomUnderSampler":
+        elif imbalanced_data_strategy=="SMOTE_RandomUnderSampler":
             smote=SMOTE(random_state=random_seed, sampling_strategy=0.4) 
             underSampler = RandomUnderSampler(random_state=random_seed, sampling_strategy=0.8)
             handler=[("smote", smote), ("underSampler", underSampler)]
