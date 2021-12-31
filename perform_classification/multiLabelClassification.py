@@ -378,7 +378,7 @@ def perform_multilabel_classification(task_name, task_settings, basic_settings):
     train_data=task_settings["train_data"]
     test_data_dict=task_settings["test_data_dict"]
     feature_columns=task_settings["feature_columns"]
-    keep_feature_columns=task_settings["keep_feature_columns"]
+    keep_feature_columns=task_settings["keep_feature_directly"]
     label_column=task_settings["label_column"]
     base_results_path=task_settings["base_results_path"]
     save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -keep_feature_columns={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), keep_feature_columns, label_column, base_results_path))

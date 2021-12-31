@@ -58,7 +58,9 @@ random_seed=get_basic_settings()["random_seed"]
 # - from a list of models, with different feature selection methods and classifiers;
 # - using the train data and 5-folds cross-validation.
 
-def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy, searchCV_method="randomSearchCV"):
+def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed,
+                                               label_column, harmonization_settings, save_results_path, feature_selection_type, 
+                                               imbalanced_data_strategy, searchCV_method="randomSearchCV"):
     """
     Tuning the hypperparameters for different models.
     """
@@ -112,6 +114,13 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         preprocessing_transformer_list=imputation_transformer+harmonization_transformer+[
             ("filter_features", SelectColumnsTransformer(feature_columns))]+scaler_transformer+delete_corr_features_transformer
         
+        if len(keep_feature_after_preprocessed)>0:
+            kept_preprocessed_features_pipeline=Pipeline(steps=[('select_features',SelectColumnsTransformer(keep_feature_after_preprocessed))]+scaler_transformer)
+            
+            features_kept_after_preprocessed=[("kept_preprocessed_features", kept_preprocessed_features_pipeline)]
+        else:
+            features_kept_after_preprocessed=[]
+        
         cross_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_seed)
         
         #--------------------- begin hyperparameter tuning process--------------------------------
@@ -158,7 +167,8 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             
             # Pipeline
             selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
-            combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_columns)), ("selected_features", selected_features)])
+            combined_features = FeatureUnion([("keep_feature_directly", SelectColumnsTransformer(keep_feature_directly))]
+                                             +features_kept_after_preprocessed+[("selected_features", selected_features)])
             pipeline = Pipeline(steps=[('features',combined_features)]+imbalanced_data_handler+[('classifier',classifier_model)])           
             
             # random search parameters
@@ -173,7 +183,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             
             # Pipeline
             selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
-            combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_columns)), ("selected_features", selected_features)])
+            combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_directly)), ("selected_features", selected_features)])
             pipeline = Pipeline(steps=[('features',combined_features), ('classifier',classifier_model)]) 
             
             # random search parameters
@@ -238,13 +248,15 @@ def evaluate_model(model, X, y):
 
 
 
-def main_find_best_model(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
+def main_find_best_model(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, label_column, 
+                         harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Step 1: Tuning the hyperparameters for different feature selection and classifier models.
     """
     save_log("\n\n == Tuning the hyperparameters for different feature selection and classifier models... ==")
-    hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, 
-                                               save_results_path, feature_selection_type, imbalanced_data_strategy)
+    hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, 
+                                               label_column, harmonization_settings, save_results_path, feature_selection_type, 
+                                               imbalanced_data_strategy)
     arrange_hyperparameter_searching_results(save_results_path)
 
 
@@ -373,8 +385,8 @@ def predict(trained_model_path, test_data, label_column, save_results_path, data
 """
 Main function for binary classification: train and predict.
 """
-def perform_binary_classification_train(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings,
-                                        save_results_path, feature_selection_type, imbalanced_data_strategy):
+def perform_binary_classification_train(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, label_column,
+                                        harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy):
     """
     Find the best model from a list of models, and retrained it on the whole training dataset.
     """
@@ -384,7 +396,8 @@ def perform_binary_classification_train(train_data, feature_columns, keep_featur
     save_log("\n-train_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(train_data.shape, len(feature_columns), label_column))
 
     #Step 1: find the best hyperparameters.
-    best_model_name=main_find_best_model(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    best_model_name=main_find_best_model(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, label_column, 
+                                         harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
     #best_model_name="AnovaTest_ExtraTrees"
         
     #Step 2: retrain the selected best model on the whole training dataset.
@@ -426,10 +439,11 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     train_data=task_settings["train_data"]
     test_data_dict=task_settings["test_data_dict"]
     feature_columns=task_settings["feature_columns"]
-    keep_feature_columns=task_settings["keep_feature_columns"]
+    keep_feature_directly=task_settings["keep_feature_directly"]
+    keep_feature_after_preprocessed=task_settings["keep_feature_after_preprocessed"]
     label_column=task_settings["label_column"]
     base_results_path=task_settings["base_results_path"]
-    save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -keep_feature_columns={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), keep_feature_columns, label_column, base_results_path))
+    save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -keep_feature_directly={}; \n -keep_feature_after_preprocessed={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), keep_feature_directly, keep_feature_after_preprocessed, label_column, base_results_path))
 
     # create the folder to save results.
     save_results_path=os.path.join(base_results_path, task_name)
@@ -474,11 +488,14 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
                 
         #add the labels of the former classifiers into the features
         former_classifiers_labels=[former_label+"_CC" for former_label, former_task in former_classifiers.items()]
-        keep_feature_columns=keep_feature_columns+former_classifiers_labels    
+        keep_feature_directly=keep_feature_directly+former_classifiers_labels    
     #----------------------------------------------------     
     
     ## train the model
-    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, keep_feature_columns, label_column, harmonization_settings, save_results_path, feature_selection_type, imbalanced_data_strategy)
+    best_model_name, trained_model_path=perform_binary_classification_train(train_data, feature_columns, keep_feature_directly,
+                                                                            keep_feature_after_preprocessed, label_column, 
+                                                                            harmonization_settings, save_results_path, 
+                                                                            feature_selection_type, imbalanced_data_strategy)
 
     ## make predictions
     test_data_dict=dict(**{"train_data":train_data}, **test_data_dict)    
