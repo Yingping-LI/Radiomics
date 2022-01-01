@@ -464,9 +464,15 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     if "former_classifiers" in task_settings.keys():
         use_true_for_train=False
         
+        # use different image filters for different tasks
+        classifierchain_image_filters=task_settings["classifierchain_image_filters"]
+        former_image_filter=classifierchain_image_filters["former_image_filter"]
+        current_image_filter=classifierchain_image_filters["current_image_filter"]
+        
         former_classifiers=task_settings["former_classifiers"]
         for former_label, former_task in former_classifiers.items():
             former_task_basepath=os.path.join(base_results_path, former_task)
+            former_task_basepath=former_task_basepath.replace(current_image_filter, former_image_filter)
             former_task_resultfolder=traversalDir_FirstDir(former_task_basepath)[0]
             
             # Train data: use the true/predicted label of the former classifiers in the classifier chain.
