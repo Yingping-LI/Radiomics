@@ -43,23 +43,48 @@ def get_arrange_results_settings_dict():
                         }
     }
      
-    #====================== 3: Compare different image filters ===================================
+    ====================== 3: Compare different image filters ===================================
+    #---- Compare Wavelet image filter ----
+    arrange_results_settings_dict["compare_image_filter-wavelet"]={
+        "results_basepath": os.path.join(basepath, "3-compare_image_filter"),
+        "groupby_column": "task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "image_filter",
+                         "rename_hue_values": {
+                                               "wavelet-HHH": "wavelet-HHH", 
+                                               "wavelet-HHL": "wavelet-HHL", 
+                                               "wavelet-HLH": "wavelet-HLH", 
+                                               "wavelet-HLL": "wavelet-HLL", 
+                                               "wavelet-LHH": "wavelet-LHH", 
+                                               "wavelet-LHL": "wavelet-LHL", 
+                                               "wavelet-LLH": "wavelet-LLH", 
+                                               "wavelet-LLL": "wavelet-LLL", 
+                                               },
+                         "ncol": 4,
+                         "exclude_hue_value": ["exponential", "square", "lbp-3D-m1", "lbp-3D-m2", "lbp-3D-k", "gradient", "original",
+                                              "squareroot", "logarithm", "log-sigma-1-0-mm-3D", "log-sigma-3-0-mm-3D"]
+                        }
+    }
+    
     arrange_results_settings_dict["compare_image_filter"]={
         "results_basepath": os.path.join(basepath, "3-compare_image_filter"),
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "image_filter",
-                         "rename_hue_values": {"exponential": "Exponential", 
+                         "rename_hue_values": {
                                                "square": "Square", 
-                                               "lbp-3D": "Local Binary Pattern",  
-                                               "gradient": "Gradient", 
-                                               "wavelet": "Wavelet", 
-                                               "original": "Original", 
+                                               "exponential": "Exponential", 
                                                "squareroot": "SquareRoot", 
                                                "logarithm": "Logarithm", 
-                                               "log-sigma-1-0-mm-3D": "Laplacian of Gaussian"},
+                                               "lbp-3D-m1": "Local Binary Pattern", 
+                                               "wavelet-LLL": "Wavelet-LLL", 
+                                               "log-sigma-1-0-mm-3D": "Laplacian of Gaussian",
+                                               "gradient": "Gradient",
+                                               "original": "Original", },
                          "ncol": 5,
-                         "exclude_hue_value": ["log-sigma-3-0-mm-3D"]
+                         "exclude_hue_value": ["wavelet-HHH", "wavelet-HHL", "wavelet-HLH", "wavelet-HLL",
+                                              "wavelet-LHH", "wavelet-LHL", "wavelet-LLH",
+                                              "log-sigma-3-0-mm-3D", "lbp-3D-m2", "lbp-3D-k"]
                         }
     }
     
@@ -101,15 +126,21 @@ def get_arrange_results_settings_dict():
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "ComBat_method",
-                         "rename_hue_values":{"withoutComBat": "without ComBat",
-                                              "noEB_ComBat_Tissue.source.site_refbat": "Standard ComBat (site)",
-                                              "parametric_ComBat_Tissue.source.site_refbat": "Parametric ComBat (site)",
-                                              "nonParametric_ComBat_Tissue.source.site_refbat": "Non-parametric ComBat (site)",
-                                              "noEB_ComBat_is_3T_t1_refbat": "Standard ComBat (is_3T)",
-                                              "parametric_ComBat_is_3T_t1_refbat": "Parametric ComBat (is_3T)",
-                                              "nonParametric_ComBat_is_3T_t1_refbat": "Non-parametric ComBat (is_3T)",
-                                             },
-                         "ncol": 4,
+                         "rename_hue_values":{
+                             "noEB_ComBat_Tissue.source.site_noCovars": "Standard ComBat (site)",
+                             "noEB_ComBat_Tissue.source.site_withCovars": "Standard ComBat (site, covariates=[age, sex])",
+                             "noEB_ComBat_is_3T_t1_noCovars": "Standard ComBat (is_3T)",
+                             "noEB_ComBat_is_3T_t1_withCovars": "Standard ComBat (is_3T,  covariates=[age, sex])",
+                             "nonParametric_ComBat_Tissue.source.site_noCovars": "Non-parametric ComBat (site)",
+                             "nonParametric_ComBat_Tissue.source.site_withCovars": "Non-parametric ComBat (site,  covariates=[age, sex])",
+                             "nonParametric_ComBat_is_3T_t1_noCovars": "Non-parametric ComBat (is_3T)",
+                             "nonParametric_ComBat_is_3T_t1_withCovars": "Non-parametric ComBat (is_3T,  covariates=[age, sex])",
+                             "parametric_ComBat_Tissue.source.site_noCovars": "Parametric ComBat (site)",
+                             "parametric_ComBat_Tissue.source.site_withCovars": "Parametric ComBat (site,  covariates=[age, sex])",
+                             "parametric_ComBat_is_3T_t1_noCovars": "Parametric ComBat (is_3T)",
+                             "parametric_ComBat_is_3T_t1_withCovars": "Parametric ComBat (is_3T,  covariates=[age, sex])",
+                             "withoutComBat": "without ComBat"},
+                         "ncol": 3,
                          "exclude_hue_value": []
                         }
     }
@@ -135,8 +166,8 @@ def get_arrange_results_settings_dict():
                          "hue_column": "task_additional_description",
                          "rename_hue_values": {
                              " withSubregionInfo":"Without GBM and IDH labels", 
-                             " CC-withPredictLable-useTrueForTrainFalse": "with predicted GBM and IDH labels",
-                             " CC-withPredictLable-useTrueForTrainTrue": "with true GBM and IDH labels"
+                             " CC-withPredictLable": "with predicted GBM and IDH labels",
+                             " CC-withTrueLable": "with true GBM and IDH labels"
                          },
                          "ncol": 3,
                          "exclude_hue_value": []
