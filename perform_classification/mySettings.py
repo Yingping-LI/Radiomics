@@ -34,8 +34,8 @@ global_basic_settings={
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "zscore", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
-                         "imageType_list": ["original"],  # "original" for predicting tumor grade and IDH status, "gradient" for predicting 1p/19q.
-                         "tumor_subregion_list": ["wholeTumor"], #["NCR", "ED", "ET", "TC", "wholeTumor"],
+                         "imageType_list": ["original"],  # "original" for predicting tumor grade, "squareroot" for predicting IDH status, "log-sigma-1-0-mm-3D" for predicting 1p/19q.
+                         "tumor_subregion_list": ["NCR", "TC", "wholeTumor"], #["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
     "feature_selection_method":"AnovaTest",
     "imbalanced_data_strategy": "IgnoreDataImbalance", 
