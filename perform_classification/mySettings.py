@@ -29,12 +29,13 @@ Basic Settings for the code
 global_basic_settings={
     "experiment_class": "TCGA_IDH",
     "experiment_method": "binary", #"multilabel",
-    "task_list": ["TCGA_1.103_isGBM_withSubregionInfo", "TCGA_2.103_isIDHMutant_withSubregionInfo", "TCGA_2.105_isIDHMutant_CC-withTrueLable", "TCGA_2.106_isIDHMutant_CC-withPredictLable"], 
-#     "task_list": ["TCGA_3.103_is1p19qCodeleted_withSubregionInfo", "TCGA_3.105_is1p19qCodeleted_CC-withTrueLable", "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable"], 
+#    "task_list": ["TCGA_1.104.02_isGBM_withAge"], 
+    "task_list": ["TCGA_2.104.02_isIDHMutant_withAge"],
+#     "task_list": ["TCGA_3.104.02_is1p19qCodeleted_withAge"], 
     "features_for_TCGA": "extracted_features",  
     "normalization_method": "zscore", #{"no_normalization", "fcm", "zscore"} 
     "feature_filter_dict":{"modality_list": ["t1", "t1ce", "t1Gd", "t2", "flair"], 
-                         "imageType_list": ["original"],  # "original" for predicting tumor grade, "squareroot" for predicting IDH status, "log-sigma-1-0-mm-3D" for predicting 1p/19q.
+                         "imageType_list": ["squareroot"],  # "original" for predicting tumor grade, "squareroot" for predicting IDH status, "log-sigma-1-0-mm-3D" for predicting 1p/19q.
                          "tumor_subregion_list": ["NCR", "TC", "wholeTumor"], #["NCR", "ED", "ET", "TC", "wholeTumor"],
                         },
     "feature_selection_method":"AnovaTest",
