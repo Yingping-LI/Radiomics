@@ -43,7 +43,7 @@ def get_arrange_results_settings_dict():
                         }
     }
      
-    ====================== 3: Compare different image filters ===================================
+    #====================== 3: Compare different image filters ===================================
     #---- Compare Wavelet image filter ----
     arrange_results_settings_dict["compare_image_filter-wavelet"]={
         "results_basepath": os.path.join(basepath, "3-compare_image_filter"),
@@ -77,9 +77,9 @@ def get_arrange_results_settings_dict():
                                                "squareroot": "SquareRoot", 
                                                "logarithm": "Logarithm", 
                                                "lbp-3D-m1": "Local Binary Pattern", 
+                                               "gradient": "Gradient",
                                                "wavelet-LLL": "Wavelet-LLL", 
                                                "log-sigma-1-0-mm-3D": "Laplacian of Gaussian",
-                                               "gradient": "Gradient",
                                                "original": "Original", },
                          "ncol": 5,
                          "exclude_hue_value": ["wavelet-HHH", "wavelet-HHL", "wavelet-HLH", "wavelet-HLL",
@@ -94,8 +94,10 @@ def get_arrange_results_settings_dict():
         "groupby_column": "base_task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "task_additional_description",
-                         "rename_hue_values":{" withSubregionInfo": "Without clinical info",
-                                          " withAllInfo": "With clinical info"},
+                         "rename_hue_values":{" withSubregionInfo": "Without age and sex",
+                                              " withAge": "With age",
+                                              " withSex": "With sex",
+                                              " withAllInfo": "With age and sex"},
                          "ncol": 2,
                          "exclude_hue_value": []
                         }
@@ -104,11 +106,12 @@ def get_arrange_results_settings_dict():
     
    #====================== 5: Compare the data imbalance strategy ===================================
     arrange_results_settings_dict["compare_data_imbalance"]={
-        "results_basepath": os.path.join(basepath, "5-compare_dataimbalance"),
+        "results_basepath": os.path.join(basepath, "6-compare_dataimbalance"),
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "Data_imblance_strategy",
                          "rename_hue_values":{"IgnoreDataImbalance": "Without data imbalance strategy",
+                                              "IgnoreDataImbalance_WithBalacedWeighting": "with balanced weight",
                                               "RandomOverSampler": "RandomOverSampler",
                                               "RandomUnderSampler": "RandomUnderSampler",
                                               "SMOTE": "SMOTE",
@@ -122,7 +125,7 @@ def get_arrange_results_settings_dict():
     
     #====================== 6: Compare ComBat ===================================
     arrange_results_settings_dict["compare_ComBat"]={
-        "results_basepath": os.path.join(basepath, "6-compare_ComBat"),
+        "results_basepath": os.path.join(basepath, "5-compare_ComBat"),
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "ComBat_method",
@@ -165,7 +168,7 @@ def get_arrange_results_settings_dict():
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "task_additional_description",
                          "rename_hue_values": {
-                             " withSubregionInfo":"Without GBM and IDH labels", 
+                             " withAge":"Without GBM and IDH labels", 
                              " CC-withPredictLable": "with predicted GBM and IDH labels",
                              " CC-withTrueLable": "with true GBM and IDH labels"
                          },
@@ -187,28 +190,63 @@ def get_convert_binary_to_multiclass_setting_dict():
     
     # base path
     base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
-    image_filter="log-sigma-1-0-mm-3D"
     intensity_normalization="zscore"
-    random_seed=0
+    random_seed=2021
     
-    results_base_path= os.path.join(base_dataPath, "Results_randomseed"+str(random_seed), image_filter, "TCGA_IDH-extracted_features-"+intensity_normalization, "withoutComBat-IgnoreDataImbalance")
+    results_base_path= os.path.join(base_dataPath, "Results_randomseed"+str(random_seed), "7-compare_ClassifierChain") 
     
     convert_binary_to_multiclass_setting_dict={}
     
     convert_binary_to_multiclass_setting_dict["TCGA-IDH"]={
-        # folders of the tasks.
-        "binary_task_path_dict": {"is_GBM": os.path.join(results_base_path, "TCGA_1.103_isGBM_withSubregionInfo"),
-                                  "is_IDH_mutant": os.path.join(results_base_path, "TCGA_2.106_isIDHMutant_CC-withPredictLable"),
-                                  "is_1p19q_codeleted": os.path.join(results_base_path, "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable")},
+        # Image filter dict
+        "image_filter_dict": {"is_GBM": "original",
+                             "is_IDH_mutant": "squareroot", 
+                             "is_1p19q_codeleted": "log-sigma-1-0-mm-3D"},
+        
+        # The final setting name for each task
+        "final_task_setting_dict":{"is_GBM": "TCGA_1.104.02_isGBM_withAge",
+                                  "is_IDH_mutant": "TCGA_2.106_isIDHMutant_CC-withPredictLable", 
+                                  "is_1p19q_codeleted": "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable"},
+        
         # base path to save the results.
-        "save_results_basepath": results_base_path, 
-        # excel path which saves the ground truth labels;
-        "ground_truth_target_excel_dict": {"train_data": os.path.join(base_dataPath, "Features", "final_metadata", intensity_normalization, "TCGA_extracted_features_IDH_train_resplited_randomseed_"+str(random_seed)+".xlsx"),
-                                           "test_data": os.path.join(base_dataPath, "Features", "final_metadata", intensity_normalization, "TCGA_extracted_features_IDH_test_resplited_randomseed_"+str(random_seed)+".xlsx")
-                                          }
-                                           
-
+        "save_results_basepath": results_base_path,                                    
     }
+    
+     ##=============== Add other distributions =============================
+    for setting_name, convert_binary_to_multiclass_setting in convert_binary_to_multiclass_setting_dict.items():
+        image_filter_dict=convert_binary_to_multiclass_setting["image_filter_dict"]
+        final_task_setting_dict=convert_binary_to_multiclass_setting["final_task_setting_dict"]
+        
+        binary_task_path_dict={}
+        ground_truth_target_excel_dict={}
+        for task_name, image_filter in image_filter_dict.items():
+            image_filter=image_filter_dict[task_name]
+            final_task_setting=final_task_setting_dict[task_name]
+            
+            binary_task_path_dict[task_name]= os.path.join(results_base_path, image_filter, "TCGA_IDH-extracted_features-"+intensity_normalization, "withoutComBat-IgnoreDataImbalance", final_task_setting)
+            
+            # Feature folder name
+            if image_filter.startswith("wavelet"):
+                feature_folder="final_metadata(wavelet)"
+            elif image_filter in ["original", "gradient", "log-sigma-1-0-mm-3D", "log-sigma-3-0-mm-3D"]:
+                feature_folder="final_metadata(original)"
+            elif image_filter in ["square", "squareroot", "logarithm", "exponential", "lbp-3D-m2", "lbp-3D-m1", "lbp-3D-k"]:
+                feature_folder='final_metadata(exponential)'
+
+        
+            # excel path which saves the ground truth labels;
+            ground_truth_target_excel_dict[task_name]={
+                #train data
+                "train_data": os.path.join(base_dataPath, "Features", feature_folder, intensity_normalization, "TCGA_extracted_features_IDH_train_resplited_randomseed_"+str(random_seed)+".xlsx"),
+                #test data                            
+                "test_data": os.path.join(base_dataPath, "Features", feature_folder, intensity_normalization, "TCGA_extracted_features_IDH_test_resplited_randomseed_"+str(random_seed)+".xlsx")
+            }
+         
+        
+        # folders of the tasks.
+        convert_binary_to_multiclass_setting["binary_task_path_dict"]=binary_task_path_dict
+        convert_binary_to_multiclass_setting["ground_truth_target_excel_dict"]=ground_truth_target_excel_dict["is_GBM"]
+        convert_binary_to_multiclass_setting_dict[setting_name]=convert_binary_to_multiclass_setting
         
     return convert_binary_to_multiclass_setting_dict
 
