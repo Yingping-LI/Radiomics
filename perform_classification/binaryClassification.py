@@ -22,6 +22,7 @@ import warnings
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 
 # For feature selection and classifier models
+from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectKBest, SelectFromModel, RFECV, RFE, f_classif, chi2, mutual_info_classif
 from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 #from sklearn.pipeline import Pipeline
@@ -129,34 +130,72 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         
         #--------------------- begin hyperparameter tuning process--------------------------------
         ### define feature selection function.
-        if feature_selection_type=="RFE":
-            feature_selection_method=RFE(estimator=classifier_model, step=5) #, n_features_to_select=20
-            pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
-            #save_log("Possible hyperparameters for {} pipeline: \n {}".format(classfier_name, pipeline.get_params().keys()))
+        if feature_selection_type=="RFE":            
+#             feature_selection_method=RFE(estimator=classifier_model, step=5) #, n_features_to_select=20
+#             pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+#             #save_log("Possible hyperparameters for {} pipeline: \n {}".format(classfier_name, pipeline.get_params().keys()))
             
-            randomsearch_param_grids=dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
+#             randomsearch_param_grids=dict(**{"feature_selection__n_features_to_select": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
             
-            search = searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed).fit(X, y)
-            n_feature_selected=search.best_estimator_["feature_selection"].n_features_
+#             search = searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed).fit(X, y)
+#             n_feature_selected=search.best_estimator_["feature_selection"].n_features_
+
+            feature_selection_method=RFE(estimator=LogisticRegression(C=1, penalty='l1', solver="liblinear"), step=5) 
+           # Pipeline
+            selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            combined_features = FeatureUnion([("keep_feature_directly", SelectColumnsTransformer(keep_feature_directly))]
+                                             +features_kept_after_preprocessed+[("selected_features", selected_features)])
+            pipeline = Pipeline(steps=[('features',combined_features)]+imbalanced_data_handler+[('classifier',classifier_model)])           
+            
+            # random search parameters
+            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__n_features_to_select": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            
+            # grid search
+            search =searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed, searchCV_method).fit(X, y)
+            n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].n_features_to_select
+            
             
         elif feature_selection_type=="RFECV": 
-            feature_selection_method=RFECV(estimator=classifier_model, step=5, min_features_to_select=20) 
-            pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+#             feature_selection_method=RFECV(estimator=classifier_model, step=5, min_features_to_select=20) 
             
-            randomsearch_param_grids={"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}
+#             pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            
+#             randomsearch_param_grids={"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}
 
-            search = searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed).fit(X, y)
-            n_feature_selected=search.best_estimator_["feature_selection"].n_features_
+#             search = searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed).fit(X, y)
+#             n_feature_selected=search.best_estimator_["feature_selection"].n_features_
+            
+            feature_selection_method=RFECV(estimator=LogisticRegression(C=1, penalty='l1', solver="liblinear"), step=5)
+        
+            # Pipeline
+            selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            combined_features = FeatureUnion([("keep_feature_directly", SelectColumnsTransformer(keep_feature_directly))]
+                                             +features_kept_after_preprocessed+[("selected_features", selected_features)])
+            pipeline = Pipeline(steps=[('features',combined_features)]+imbalanced_data_handler+[('classifier',classifier_model)])           
+            
+            # random search parameters
+            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__min_features_to_select": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            
+            # grid search
+            search =searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed, searchCV_method).fit(X, y)
+            n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].n_features_
+            
             
         elif feature_selection_type=="SelectFromModel": 
-            feature_selection_method=SelectFromModel(estimator=classifier_model) #max_features=20
-            pipeline = Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            feature_selection_method=SelectFromModel(estimator=LogisticRegression(C=1, penalty='l1', solver="liblinear"))
             
-           
-            randomsearch_param_grids=dict(**{"feature_selection__max_features": feature_number_for_selection}, **{"feature_selection__estimator__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            # Pipeline
+            selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
+            combined_features = FeatureUnion([("keep_feature_directly", SelectColumnsTransformer(keep_feature_directly))]
+                                             +features_kept_after_preprocessed+[("selected_features", selected_features)])
+            pipeline = Pipeline(steps=[('features',combined_features)]+imbalanced_data_handler+[('classifier',classifier_model)])           
             
-            search = searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed).fit(X, y)
-            n_feature_selected= search.best_estimator_.transform(X).shape[1]
+            # random search parameters
+            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__max_features": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            
+            # grid search
+            search =searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed, searchCV_method).fit(X, y)
+            n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].max_features
             
         elif feature_selection_type=="AnovaTest" or feature_selection_type=="ChiSquare" or feature_selection_type=="MutualInformation": 
             
@@ -187,13 +226,15 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             
             # Pipeline
             selected_features=Pipeline(steps=preprocessing_transformer_list+[('feature_selection',feature_selection_method)])
-            combined_features = FeatureUnion([("keep_features_directly", SelectColumnsTransformer(keep_feature_directly)), ("selected_features", selected_features)])
-            pipeline = Pipeline(steps=[('features',combined_features), ('classifier',classifier_model)]) 
+            combined_features = FeatureUnion([("keep_feature_directly", SelectColumnsTransformer(keep_feature_directly))]
+                                             +features_kept_after_preprocessed+[("selected_features", selected_features)])
+            pipeline = Pipeline(steps=[('features',combined_features)]+imbalanced_data_handler+[('classifier',classifier_model)])           
             
             # random search parameters
-            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()})
-
-            search = searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed).fit(X, y)
+            randomsearch_param_grids=dict(**{"features__selected_features__feature_selection__n_components": feature_number_for_selection}, **{"classifier__"+key: item for key, item in param_grids[classfier_name].items()}) 
+            
+            # grid search
+            search =searchCV(pipeline, randomsearch_param_grids, scoring, cross_val, random_seed, searchCV_method).fit(X, y)
             n_feature_selected=search.best_estimator_["features"].get_params()["selected_features"]["feature_selection"].n_components
 
         else:
@@ -207,14 +248,6 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
             mkdir(save_hyperparameter_tuning_basepath)
             plot_GridSearch_results(search, os.path.join(save_hyperparameter_tuning_basepath, "hyperparam_tuning_"+classfier_name+".jpeg"))
         
-        ### get the best estimator.
-        if feature_selection_type=="SelectFromModel":
-            best_estimator=Pipeline(steps=preprocessing_transformer_list
-                                    +[('feature_selection',search.best_estimator_['feature_selection']),
-                                   ('classifier',search.best_estimator_['feature_selection'].estimator_)])
-        else:
-            best_estimator= search.best_estimator_
-         
         
         ### arrange the results and save it into a dict.
         save_classifier_name=feature_selection_type+"_"+classfier_name
@@ -224,7 +257,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
                 'time_cost':time()-start_time,
                 'n_feature_selected': n_feature_selected,
                 #'grid': search, 
-                'best_estimator': best_estimator,
+                'best_estimator': search.best_estimator_,
                 #'cv': search.cv,
                 'scorer':search.scorer_,
                 'cv_results_': pd.DataFrame(search.cv_results_) 
