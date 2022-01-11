@@ -10,7 +10,7 @@ def get_image_visualization_setting_dict():
     
     # base settings
     modality_list=["t1", "t1Gd", "t2", "flair"]
-    normalization_method="zscore" #{"no_normalization", "fcm", "zscore"} 
+    normalization_method="no_normalization" #{"no_normalization", "fcm", "zscore"} 
         
        
     #define settings for visualizing images.
