@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 from time import time
 import warnings
-
+import seaborn as sns
 
 ## For preprocessing
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
@@ -417,6 +417,72 @@ def predict(trained_model_path, test_data, label_column, save_results_path, data
     return result_metrics
         
 
+def visualize_feature_importance(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, 
+                                 label_column, best_model_name, save_results_path):
+    """
+    Visualize the feature importance using the whole train data.
+    """
+    
+    save_log("\nVisualize the feature importance using the best chosen model {} and the whole training dataset.".format(best_model_name))
+    
+    train_X=train_data
+    train_Y=train_data[label_column]
+    
+    ## Get the preprocessed features in the best chosen pipeline.
+    models=get_different_models_from_pickle(save_results_path)
+    best_model=models[best_model_name]
+    best_model.fit(train_X, train_Y)
+    print("\n best_model={}".format(best_model))
+    
+    ## ------- Get feature importances for the radiomics features.  ---------
+    feature_selector=best_model["features"].get_params()["selected_features"]["feature_selection"]   
+    selected_feature_number=feature_selector.k
+    assert feature_selector.n_features_in_ ==len(feature_columns)
+    selected_features_importance={"feature_names": feature_columns, 
+                                 "scores": feature_selector.scores_, 
+                                 "support": feature_selector.get_support()}
+    selected_features_importance_df=pd.DataFrame(selected_features_importance)  
+    
+    ## ------ Feature importance of keep_feature_directly and keep_feature_after_preprocessed features. ---
+    keep_feature_directly_pipeline=best_model["features"].get_params()["keep_feature_directly"]
+    directly_kept_features=keep_feature_directly_pipeline.fit_transform(train_X[keep_feature_directly], train_Y)
+    
+    keep_feature_after_preprocessed_pipeline=best_model["features"].get_params()["kept_preprocessed_features"]
+    kept_preprocessed_features=keep_feature_after_preprocessed_pipeline.fit_transform(train_X[keep_feature_after_preprocessed], train_Y)
+    kept_preprocessed_features=pd.DataFrame(kept_preprocessed_features, index=train_X.index, 
+                                            columns=keep_feature_after_preprocessed) 
+    kept_features=pd.concat([directly_kept_features, kept_preprocessed_features], axis=1, join="outer") 
+    
+    # calculate feature importance for the kept features.
+    feature_importance_caculator=SelectKBest(score_func=f_classif, k="all")
+    feature_importance_caculator.fit(kept_features, train_Y)
+    Kept_feature_importances={"feature_names": kept_features.columns,
+                               "scores": feature_importance_caculator.scores_ ,
+                               "support": feature_importance_caculator.get_support()}
+    
+    Kept_feature_importance_df=pd.DataFrame(Kept_feature_importances)  
+    
+    ## Concanate the importance of the selected radiomic features and the kept features, and save in excel.
+    Feature_importance_results=pd.concat([selected_features_importance_df, Kept_feature_importance_df], axis=0, join="outer")        
+    Feature_importance_results.to_excel(os.path.join(save_results_path, "feature_supports.xlsx"))
+    
+    ## Final features used in the model after feature selection.
+    supported_features=Feature_importance_results.loc[Feature_importance_results['support'] == True]
+    save_log("\n In total, {} features are used for the the final model; \n-including {} selected features; \n-direcly kept features={}; \n-n-kept feature after preprocessed={}.".format(supported_features.shape[0], selected_feature_number, keep_feature_directly, keep_feature_after_preprocessed))
+    ## Plot the feature importance;
+    fig, ax = plt.subplots(figsize=(8, 30))
+    sns.barplot(y="feature_names", x="scores", data=supported_features.sort_values("scores", ascending=False))
+    # add text on the bar plots
+    for p in ax.patches:
+        color=p.get_facecolor()
+        box = p.get_bbox()
+        ax.annotate("%.2f" % p.get_width(), xy=(p.get_x() + p.get_width()+2, p.get_y() + p.get_height()-0.3), 
+                    color=color, fontsize=8, weight='bold')
+        
+    ax.set(xlabel="Feature importance", ylabel="Feature name")
+    plt.savefig(os.path.join(save_results_path, "visualize_feature_importance.jpeg"))
+    plt.show()
+
 
 #=======================================================================================
 """
@@ -439,6 +505,9 @@ def perform_binary_classification_train(train_data, feature_columns, keep_featur
         
     #Step 2: retrain the selected best model on the whole training dataset.
     trained_model_path=retrain_the_best_model(train_data, label_column, best_model_name, save_results_path)
+    #Step 3: visualize the feature importance;
+    visualize_feature_importance(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, label_column, best_model_name, save_results_path)
+    
     
     return best_model_name, trained_model_path
 
