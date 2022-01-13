@@ -44,7 +44,8 @@ from sklearn.pipeline import FeatureUnion
 #import function from the self-defined utils
 import sys
 sys.path.append("../")
-from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle, save_log, traversalDir_FirstDir
+from utils.LogManager import LogManager
+from utils.myUtils import mkdir, save_dict, load_dict, get_logger, save_pickle, load_pickle,  traversalDir_FirstDir
 from utils.harmonizationUtils import neuroComBat_harmonization, neuroComBat_harmonization_FromTraning
 from myTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumnsTransformer, DeleteCorrColumnTransformer
 from myClassificationUtils import *
@@ -81,7 +82,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
     
     ## ============ Models =================
     for classfier_name, classifier_model in classification_models.items():
-        save_log("\n\n ======Exploring the hyperparameters for feature_selection_method={}, classifier={}. =========".format(feature_selection_type, classfier_name))
+        Log.save_log("\n\n ======Exploring the hyperparameters for feature_selection_method={}, classifier={}. =========".format(feature_selection_type, classfier_name))
         start_time = time()
         
             
@@ -266,7 +267,7 @@ def hyperparameter_tuning_for_different_models(train_data, feature_columns, keep
         ### save the results
         save_txt_path=os.path.join(save_results_path, "RandomizedSearchCV_"+save_classifier_name+".pickle")
         save_pickle(result, save_txt_path)
-        save_log("Best parameter for {}: \n result={}.".format(save_classifier_name, result))
+        Log.save_log("Best parameter for {}: \n result={}.".format(save_classifier_name, result))
         
 
 
@@ -290,7 +291,7 @@ def main_find_best_model(train_data, feature_columns, keep_feature_directly, kee
     """
     Step 1: Tuning the hyperparameters for different feature selection and classifier models.
     """
-    save_log("\n\n == Tuning the hyperparameters for different feature selection and classifier models... ==")
+    Log.save_log("\n\n == Tuning the hyperparameters for different feature selection and classifier models... ==")
     hyperparameter_tuning_for_different_models(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, 
                                                label_column, harmonization_settings, save_results_path, feature_selection_type, 
                                                imbalanced_data_strategy)
@@ -300,7 +301,7 @@ def main_find_best_model(train_data, feature_columns, keep_feature_directly, kee
     """
     Step 2: Compare the results of different feature selection and classifier models, with the best tuned hyperparameters.
     """
-    save_log("\n\n == Compare the results of different feature selection and classifier models, with the best tuned hyperparameters... ==")
+    Log.save_log("\n\n == Compare the results of different feature selection and classifier models, with the best tuned hyperparameters... ==")
     X=train_data
     y=train_data[label_column]
     best_model_name= explore_different_models(X, y, evaluate_model, save_results_path)
@@ -315,7 +316,7 @@ def retrain_the_best_model(train_data, label_column, best_model_name, save_resul
     Retrain the best model with the whole training dataset. 
     """
     
-    save_log("\nWe Retrain the model {} using the whole training dataset. ".format(best_model_name))
+    Log.save_log("\nWe Retrain the model {} using the whole training dataset. ".format(best_model_name))
     
     train_X=train_data
     train_Y=train_data[label_column]
@@ -388,18 +389,18 @@ def predict(trained_model_path, test_data, label_column, save_results_path, data
                             "max_f1": float(max_f1),
                             "threshold_0.5": 0.5}
             
-            save_log("\n Threshold info for train data: \n{}.".format(threshold_info))
+            Log.save_log("\n Threshold info for train data: \n{}.".format(threshold_info))
             save_dict(threshold_info, threshold_file)
         else:
             # ROC curve without showing the best threshold
             plot_ROC_curve(test_Y, predicted_prob, save_results_path, show_threshold=False)
             
             threshold_info=load_dict(threshold_file)
-            save_log("\n Threshold info optimized from the train data: {}.".format(threshold_info))
+            Log.save_log("\n Threshold info optimized from the train data: {}.".format(threshold_info))
        
         #the threshold used for make the decision;
         threshold=threshold_info[threshold_type]
-        save_log("\n The threshold used: {}.".format(threshold))
+        Log.save_log("\n The threshold used: {}.".format(threshold))
             
         #define the threshold
         predicted = predicted_prob > threshold
@@ -412,7 +413,7 @@ def predict(trained_model_path, test_data, label_column, save_results_path, data
         #calculate and save metrics 
         result_metrics=calculate_metrics_for_binary(test_Y, predicted, predicted_prob)
         save_dict({**{"threshold": threshold}, **result_metrics}, os.path.join(save_results_path, "prediction_metrics.txt"))
-        save_log("Prediction results:\n{}".format(result_metrics))
+        Log.save_log("Prediction results:\n{}".format(result_metrics))
         
     return result_metrics
         
@@ -423,7 +424,7 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
     Visualize the feature importance using the whole train data.
     """
     
-    save_log("\nVisualize the feature importance using the best chosen model {} and the whole training dataset.".format(best_model_name))
+    Log.save_log("\nVisualize the feature importance using the best chosen model {} and the whole training dataset.".format(best_model_name))
     
     train_X=train_data
     train_Y=train_data[label_column]
@@ -468,7 +469,7 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
     
     ## Final features used in the model after feature selection.
     supported_features=Feature_importance_results.loc[Feature_importance_results['support'] == True]
-    save_log("\n In total, {} features are used for the the final model; \n-including {} selected features; \n-direcly kept features={}; \n-n-kept feature after preprocessed={}.".format(supported_features.shape[0], selected_feature_number, keep_feature_directly, keep_feature_after_preprocessed))
+    Log.save_log("\n In total, {} features are used for the the final model; \n-including {} selected features; \n-direcly kept features={}; \n-n-kept feature after preprocessed={}.".format(supported_features.shape[0], selected_feature_number, keep_feature_directly, keep_feature_after_preprocessed))
     ## Plot the feature importance;
     fig, ax = plt.subplots(figsize=(8, 30))
     sns.barplot(y="feature_names", x="scores", data=supported_features.sort_values("scores", ascending=False))
@@ -480,7 +481,7 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
                     color=color, fontsize=8, weight='bold')
         
     ax.set(xlabel="Feature importance", ylabel="Feature name")
-    plt.savefig(os.path.join(save_results_path, "visualize_feature_importance.jpeg"))
+    plt.savefig(os.path.join(save_results_path, label_column+"-FeatureImportance.jpeg"))
     plt.show()
 
 
@@ -493,10 +494,10 @@ def perform_binary_classification_train(train_data, feature_columns, keep_featur
     """
     Find the best model from a list of models, and retrained it on the whole training dataset.
     """
-    save_log("\n\n****** Begin to find and train the best model to predict {} ....... ******".format(label_column))
+    Log.save_log("\n\n****** Begin to find and train the best model to predict {} ....... ******".format(label_column))
     
     ## Data preprocessing.
-    save_log("\n-train_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(train_data.shape, len(feature_columns), label_column))
+    Log.save_log("\n-train_data.shape={} \n-len(feature_columns)={} \n-label_column={}".format(train_data.shape, len(feature_columns), label_column))
 
     #Step 1: find the best hyperparameters.
     best_model_name=main_find_best_model(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, label_column, 
@@ -519,7 +520,7 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, la
     save_results_path=os.path.dirname(trained_model_path)
     
     for description, test_data in test_data_dict.items():
-        save_log("\n- Predict for {}: \n-data.shape={}; \n-label_column={};\n-value_count=\n{}".format(description, test_data.shape, label_column, test_data[label_column].value_counts()))
+        Log.save_log("\n- Predict for {}: \n-data.shape={}; \n-label_column={};\n-value_count=\n{}".format(description, test_data.shape, label_column, test_data[label_column].value_counts()))
 
         predict(trained_model_path, test_data, label_column, save_results_path, description)
     
@@ -533,9 +534,7 @@ Main: call the function and perform the classification.
 """
 def perform_binary_classification(task_name, task_settings, basic_settings):
     print("\n === Basic settings={} =======".format(basic_settings))
-        
-    save_log("\n =================== task_name={} ===============".format(task_name))
-      
+
     #read the settings
     feature_selection_type=basic_settings["feature_selection_method"]
     imbalanced_data_strategy=basic_settings["imbalanced_data_strategy"]
@@ -550,13 +549,20 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     keep_feature_after_preprocessed=task_settings["keep_feature_after_preprocessed"]
     label_column=task_settings["label_column"]
     base_results_path=task_settings["base_results_path"]
-    save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -keep_feature_directly={}; \n -keep_feature_after_preprocessed={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), keep_feature_directly, keep_feature_after_preprocessed, label_column, base_results_path))
-
+    
     # create the folder to save results.
     save_results_path=os.path.join(base_results_path, task_name)
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path) 
-        
+
+    # Global an instance "LogManager" to save logs.
+    global Log
+    Log=LogManager(log_file_name=os.path.join(save_results_path, "log.txt"))
+    Log.save_log("\n === Basic settings={} =======".format(basic_settings))
+    Log.save_log("\n =================== task_name={} ===============".format(task_name))
+    Log.save_log("\n -train_excel_path={}; \n -test_excel_path_dict={}; \n -len(feature_columns)={}; \n -keep_feature_directly={}; \n -keep_feature_after_preprocessed={}; \n -label_column={}, \n -base_results_path={}".format(train_excel_path, test_excel_path_dict, len(feature_columns), keep_feature_directly, keep_feature_after_preprocessed, label_column, base_results_path))
+    
+    
 #     #drop the highly correlated features using train data.
 #     highly_correlated_columns, relatively_indepedent_columns=get_highly_correlated_features(train_data[feature_columns], save_results_path, threshold=0.95)
 #     feature_columns=relatively_indepedent_columns
@@ -610,5 +616,5 @@ def perform_binary_classification(task_name, task_settings, basic_settings):
     perform_binary_classification_predict(trained_model_path, test_data_dict, label_column, save_results_path)
 
 
-    save_log("\nFinish classification for {}!".format(task_name))
+    Log.save_log("\nFinish classification for {}!".format(task_name))
 
