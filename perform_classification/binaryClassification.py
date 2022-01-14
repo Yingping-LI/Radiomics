@@ -464,23 +464,28 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
     Kept_feature_importance_df=pd.DataFrame(Kept_feature_importances)  
     
     ## Concanate the importance of the selected radiomic features and the kept features, and save in excel.
-    Feature_importance_results=pd.concat([selected_features_importance_df, Kept_feature_importance_df], axis=0, join="outer")        
+    Feature_importance_results=pd.concat([selected_features_importance_df, Kept_feature_importance_df], axis=0, join="outer") 
+    Feature_importance_results["feature_names"]= Feature_importance_results["feature_names"].map(lambda x: x.replace("log-sigma-1-0-mm-3D", "LoG"))
     Feature_importance_results.to_excel(os.path.join(save_results_path, "feature_supports.xlsx"))
     
     ## Final features used in the model after feature selection.
     supported_features=Feature_importance_results.loc[Feature_importance_results['support'] == True]
     Log.save_log("\n In total, {} features are used for the the final model; \n-including {} selected features; \n-direcly kept features={}; \n-n-kept feature after preprocessed={}.".format(supported_features.shape[0], selected_feature_number, keep_feature_directly, keep_feature_after_preprocessed))
     ## Plot the feature importance;
-    fig, ax = plt.subplots(figsize=(8, 30))
-    sns.barplot(y="feature_names", x="scores", data=supported_features.sort_values("scores", ascending=False))
+    fig, ax = plt.subplots(figsize=(20, 8))
+    sns.barplot(x="feature_names", y="scores", data=supported_features.sort_values("scores", ascending=False))       
     # add text on the bar plots
+    ymin, ymax = ax.get_ylim()
     for p in ax.patches:
         color=p.get_facecolor()
         box = p.get_bbox()
-        ax.annotate("%.2f" % p.get_width(), xy=(p.get_x() + p.get_width()+2, p.get_y() + p.get_height()-0.3), 
-                    color=color, fontsize=8, weight='bold')
-        
-    ax.set(xlabel="Feature importance", ylabel="Feature name")
+        ax.annotate("%.4f" % p.get_height(), xy=((box.x0 + box.x1)/2-0.08, p.get_height()+0.025*ymax), color=color, 
+                    rotation=90, fontsize=10, weight='bold')
+    
+    plt.xticks(rotation=90)
+    plt.xlabel("Feature Name", fontsize=10)
+    plt.ylabel("Feature Importance", fontsize=10)
+    plt.subplots_adjust(left=0.07, bottom=0.6, right=0.98, top=0.9, wspace =0, hspace =0)
     plt.savefig(os.path.join(save_results_path, label_column+"-FeatureImportance.jpeg"))
     plt.show()
 
@@ -506,6 +511,7 @@ def perform_binary_classification_train(train_data, feature_columns, keep_featur
         
     #Step 2: retrain the selected best model on the whole training dataset.
     trained_model_path=retrain_the_best_model(train_data, label_column, best_model_name, save_results_path)
+    
     #Step 3: visualize the feature importance;
     visualize_feature_importance(train_data, feature_columns, keep_feature_directly, keep_feature_after_preprocessed, label_column, best_model_name, save_results_path)
     

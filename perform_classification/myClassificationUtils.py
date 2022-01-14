@@ -189,7 +189,7 @@ def get_classifiers(random_seed):
     
     
     param_grids["GradientBoosting"]={
-        "criterion": ["friedman_mse", "mse"],
+        "criterion": ["friedman_mse", "squared_error"],
         #'max_features': ['auto', 'sqrt', 'log2'],
         "n_estimators": [10, 20, 50, 100],
         'max_depth':  [5, 10, 15, 20, 30],
