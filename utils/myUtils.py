@@ -264,3 +264,24 @@ def load_pickle(pickle_path):
         dict_data =pickle.load(file)
 
     return dict_data
+
+def get_color_list():
+    color_list = list({
+       'green': '#008000',
+       'lightskyblue':'#87CEFA',
+       'tomato':'#FF6347',
+       'purple': '#800080',
+       'gray': '#808080',
+       'yellow':'#FFFF00',   
+       'red': '#FF0000',
+       'palegreen':'#98FB98',
+       'lime': '#00FF00',
+       'darkred': '#8B0000',
+       'orchid':'#DA70D6',
+       'brown':'#A52A2A',
+       'crimson':'#DC143C',
+       'olive':  '#808000',
+       'blueviolet': '#8A2BE2',
+       }.values())
+    
+    return color_list

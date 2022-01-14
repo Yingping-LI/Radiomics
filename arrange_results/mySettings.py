@@ -250,3 +250,27 @@ def get_convert_binary_to_multiclass_setting_dict():
         
     return convert_binary_to_multiclass_setting_dict
 
+
+
+#================ used for "main_plot_ROCs.ipynb" ======================
+"""
+Settings for plotting ROC curves with different random seeds in one plot;
+"""
+def get_plot_ROC_setting_dict():
+    
+    # base path
+    base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
+
+    plot_ROC_setting_dict={}
+    
+    plot_ROC_setting_dict["TCGA-IDH"]={
+        "base_dataPath": base_dataPath,
+        "random_seed_list": [0, 500, 2021, 5000, 10000],   
+        "save_results_basepath": base_dataPath,     
+        "data_excel_name": "multiclass_predicted_results-test_data.xlsx", #"multiclass_predicted_results-train_data.xlsx"
+        "task_list": ["is_GBM", "is_IDH_mutant", "is_1p19q_codeleted"],
+    }
+    
+
+    return plot_ROC_setting_dict
+
