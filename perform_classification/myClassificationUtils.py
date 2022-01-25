@@ -569,7 +569,7 @@ def get_highly_correlated_features(feature_df, save_results_path=None, threshold
     https://www.projectpro.io/recipes/drop-out-highly-correlated-features-in-python
     """
     
-    original_feature_columns=features.columns
+    original_feature_columns=feature_df.columns
       
     #save the correlation matrix plot
     if save_results_path is not None:

@@ -8,7 +8,7 @@ def get_arrange_results_settings_dict():
     """
     Settings used to arrange and plot the results;
     """
-    basepath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results_randomseed2021"
+    basepath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/1_Results_NCR-TC-WT-LoGfilter/Results_randomseed2021"
     
     arrange_results_settings_dict={}
 
@@ -32,14 +32,15 @@ def get_arrange_results_settings_dict():
         "groupby_column": "base_task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "task_additional_description",
-                         "rename_hue_values": {"WT base": "WT base ", 
-                                               "WT withSubregionInfo":"WT withIndicatorColumns ", 
-                                               "NCR-TC-WT base":"NCR-TC-WT base", 
-                                               "NCR-TC-WT withSubregionInfo": "NCR-TC-WT withIndicatorColumns", 
-                                               "NCR-TC-WT-ED-ET base": "NCR-TC-WT-ED-ET base", 
-                                               "NCR-TC-WT-ED-ET withSubregionInfo":"NCR-TC-WT-ED-ET withIndicatorColumns"},
-                         "ncol": 3,
-                         "exclude_hue_value": ["ShapeFeatureOnly base", "ShapeFeatureOnly withIndicatorColumns"]
+                         "rename_hue_values": {"WT base": "WT", 
+                                               "WT withSubregionInfo":"WT with indicator columns", 
+                                               "NCR-TC-WT base":"NCR-TC-WT", 
+                                               "NCR-TC-WT withSubregionInfo": "NCR-TC-WT with indicator columns", 
+                                               #"NCR-TC-WT-ED-ET base": "NCR-TC-WT-ED-ET base", 
+                                               #"NCR-TC-WT-ED-ET withSubregionInfo":"NCR-TC-WT-ED-ET withIndicatorColumns"
+                                              },
+                         "ncol": 4,
+                         "exclude_hue_value": ["ShapeFeatureOnly base", "ShapeFeatureOnly withIndicatorColumns", "NCR-TC-WT-ED-ET base", "NCR-TC-WT-ED-ET withSubregionInfo"]
                         }
     }
      
@@ -98,7 +99,7 @@ def get_arrange_results_settings_dict():
                                               " withAge": "With age",
                                               " withSex": "With sex",
                                               " withAllInfo": "With age and sex"},
-                         "ncol": 2,
+                         "ncol": 4,
                          "exclude_hue_value": []
                         }
     }
@@ -110,14 +111,14 @@ def get_arrange_results_settings_dict():
         "groupby_column": "task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "Data_imblance_strategy",
-                         "rename_hue_values":{"IgnoreDataImbalance": "Without data imbalance strategy",
-                                              "IgnoreDataImbalance_WithBalacedWeighting": "with balanced weight",
-                                              "RandomOverSampler": "RandomOverSampler",
-                                              "RandomUnderSampler": "RandomUnderSampler",
+                         "rename_hue_values":{"IgnoreDataImbalance": "base",
+                                              "IgnoreDataImbalance_WithBalacedWeighting": "with balanced weights",
+                                              "RandomOverSampler": "Random over-sampling",
+                                              "RandomUnderSampler": "Random under-sampling",
                                               "SMOTE": "SMOTE",
-                                              "SVMSMOTE": "SVMSMOTE",
-                                              "BorderlineSMOTE": "BorderlineSMOTE",
-                                              "SMOTE_RandomUnderSampler": "SMOTE and RandomUnderSampler"},
+                                              "SVMSMOTE": "SVM SMOTE",
+                                              "BorderlineSMOTE": "Borderline SMOTE",
+                                              "SMOTE_RandomUnderSampler": "SMOTE and random under-sampling"},
                          "ncol": 4,
                          "exclude_hue_value": []
                         }
@@ -131,19 +132,19 @@ def get_arrange_results_settings_dict():
                          "hue_column": "ComBat_method",
                          "rename_hue_values":{
                              "noEB_ComBat_Tissue.source.site_noCovars": "Standard ComBat (site)",
-                             "noEB_ComBat_Tissue.source.site_withCovars": "Standard ComBat (site, covariates=[age, sex])",
-                             "noEB_ComBat_is_3T_t1_noCovars": "Standard ComBat (is_3T)",
-                             "noEB_ComBat_is_3T_t1_withCovars": "Standard ComBat (is_3T,  covariates=[age, sex])",
-                             "nonParametric_ComBat_Tissue.source.site_noCovars": "Non-parametric ComBat (site)",
-                             "nonParametric_ComBat_Tissue.source.site_withCovars": "Non-parametric ComBat (site,  covariates=[age, sex])",
-                             "nonParametric_ComBat_is_3T_t1_noCovars": "Non-parametric ComBat (is_3T)",
-                             "nonParametric_ComBat_is_3T_t1_withCovars": "Non-parametric ComBat (is_3T,  covariates=[age, sex])",
+                             "noEB_ComBat_Tissue.source.site_withCovars": "Standard ComBat (site with covariates)",
+                             "noEB_ComBat_is_3T_t1_noCovars": "Standard ComBat (3T)",
+                             "noEB_ComBat_is_3T_t1_withCovars": "Standard ComBat (3T with covariates)",
+                             "nonParametric_ComBat_Tissue.source.site_noCovars": "Nonparametric ComBat (site)",
+                             "nonParametric_ComBat_Tissue.source.site_withCovars": "Nonparametric ComBat (site with covariates)",
+                             "nonParametric_ComBat_is_3T_t1_noCovars": "Nonparametric ComBat (3T)",
+                             "nonParametric_ComBat_is_3T_t1_withCovars": "Nonparametric ComBat (3T with covariates)",
                              "parametric_ComBat_Tissue.source.site_noCovars": "Parametric ComBat (site)",
-                             "parametric_ComBat_Tissue.source.site_withCovars": "Parametric ComBat (site,  covariates=[age, sex])",
-                             "parametric_ComBat_is_3T_t1_noCovars": "Parametric ComBat (is_3T)",
-                             "parametric_ComBat_is_3T_t1_withCovars": "Parametric ComBat (is_3T,  covariates=[age, sex])",
+                             "parametric_ComBat_Tissue.source.site_withCovars": "Parametric ComBat (site with covariates)",
+                             "parametric_ComBat_is_3T_t1_noCovars": "Parametric ComBat (3T)",
+                             "parametric_ComBat_is_3T_t1_withCovars": "Parametric ComBat (3T with covariates)",
                              "withoutComBat": "without ComBat"},
-                         "ncol": 3,
+                         "ncol": 4,
                          "exclude_hue_value": []
                         }
     }
@@ -154,9 +155,26 @@ def get_arrange_results_settings_dict():
         "groupby_column": "base_task",
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "task_additional_description",
-                         "rename_hue_values": {" withSubregionInfo":"Without GBM and IDH true labels", 
-                                              " CC-withTrueLable": "with GBM and IDH true labels"},
+                         "rename_hue_values": {" withAge":"base", 
+                                              " CC-withTrueLable": "With true tumor grade and true IDH labels"},
                          "ncol": 2,
+                         "exclude_hue_value": []
+                        }
+    }
+
+
+    #====================== 7: compare different feature selection method ======================
+    arrange_results_settings_dict["compare_featureSelection"]={
+        "results_basepath": os.path.join(basepath, "7_compare_featureSelect"),
+        "groupby_column": "task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "feature_selection",
+                         "rename_hue_values": {"AnovaTest":"Anova Test", 
+                                              "MutualInformation": "Mutual Information",
+                                              "PCA": "PCA",
+                                              "SelectFromModel":"Select From Model",
+                                              "RFE": "RFE"},
+                         "ncol": 4,
                          "exclude_hue_value": []
                         }
     }
@@ -168,14 +186,33 @@ def get_arrange_results_settings_dict():
         "plot_setting": {"x_column": "classifier", 
                          "hue_column": "task_additional_description",
                          "rename_hue_values": {
-                             " withAge":"Without GBM and IDH labels", 
+                             " withAge":"Without tumor grade and IDH labels", 
                              " CC-withPredictLable": "with predicted GBM and IDH labels",
-                             " CC-withTrueLable": "with true GBM and IDH labels"
+                             " CC-withTrueLable": "With true tumor grade and IDH labels"
                          },
                          "ncol": 3,
                          "exclude_hue_value": []
                         }
     }
+
+    #====================== 9: compare results of different random seeds. ======================
+    arrange_results_settings_dict["compare_random_seed"]={
+        "results_basepath": os.path.join(basepath, "compare_RandomSeeds"),
+        "groupby_column": "task",
+        "plot_setting": {"x_column": "classifier", 
+                         "hue_column": "additional_description",
+                         "rename_hue_values": {
+                             "randomseed0":"random seed 0", 
+                             "randomseed500":"random seed 500", 
+                             "randomseed2021":"random seed 2021", 
+                             "randomseed5000":"random seed 5000", 
+                             "randomseed10000":"random seed 10000", 
+                         },
+                         "ncol": 5,
+                         "exclude_hue_value": []
+                        }
+    }
+
     return arrange_results_settings_dict
 
 
@@ -191,9 +228,9 @@ def get_convert_binary_to_multiclass_setting_dict():
     # base path
     base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
     intensity_normalization="zscore"
-    random_seed=2021
+    random_seed=0
     
-    results_base_path= os.path.join(base_dataPath, "Results_randomseed"+str(random_seed), "7-compare_ClassifierChain") 
+    results_base_path= os.path.join(base_dataPath, "Results_randomseed"+str(random_seed)) 
     
     convert_binary_to_multiclass_setting_dict={}
     
@@ -205,8 +242,8 @@ def get_convert_binary_to_multiclass_setting_dict():
         
         # The final setting name for each task
         "final_task_setting_dict":{"is_GBM": "TCGA_1.104.02_isGBM_withAge",
-                                  "is_IDH_mutant": "TCGA_2.106_isIDHMutant_CC-withPredictLable", 
-                                  "is_1p19q_codeleted": "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable"},
+                                  "is_IDH_mutant": "TCGA_2.106_isIDHMutant_CC-withPredictLable_predictedForTrain", 
+                                  "is_1p19q_codeleted": "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable_predictedForTrain"},
         
         # base path to save the results.
         "save_results_basepath": results_base_path,                                    

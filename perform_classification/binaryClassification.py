@@ -472,7 +472,7 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
     supported_features=Feature_importance_results.loc[Feature_importance_results['support'] == True]
     Log.save_log("\n In total, {} features are used for the the final model; \n-including {} selected features; \n-direcly kept features={}; \n-n-kept feature after preprocessed={}.".format(supported_features.shape[0], selected_feature_number, keep_feature_directly, keep_feature_after_preprocessed))
     ## Plot the feature importance;
-    fig, ax = plt.subplots(figsize=(20, 8))
+    fig, ax = plt.subplots(figsize=(18, 9))
     sns.barplot(x="feature_names", y="scores", data=supported_features.sort_values("scores", ascending=False))       
     # add text on the bar plots
     ymin, ymax = ax.get_ylim()
@@ -485,7 +485,8 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
     plt.xticks(rotation=90)
     plt.xlabel("Feature Name", fontsize=10)
     plt.ylabel("Feature Importance", fontsize=10)
-    plt.subplots_adjust(left=0.07, bottom=0.6, right=0.98, top=0.9, wspace =0, hspace =0)
+    #plt.subplots_adjust(left=0.07, bottom=0.6, right=0.98, top=0.9, wspace =0, hspace =0)
+    plt.tight_layout()
     plt.savefig(os.path.join(save_results_path, label_column+"-FeatureImportance.jpeg"))
     plt.show()
 
