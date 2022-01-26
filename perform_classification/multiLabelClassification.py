@@ -52,9 +52,6 @@ from myTransformers import ComBatTransformer, PandasSimpleImputer, SelectColumns
 from myClassificationUtils import *
 from mySettings import get_basic_settings
 
-# ================= Global variable ==============
-global random_seed
-random_seed=get_basic_settings()["random_seed"]
 
 # ============ Step 1: find the best model.  ==========================
 # 
@@ -364,11 +361,16 @@ def perform_binary_classification_predict(trained_model_path, test_data_dict, fe
 """"
 Main: call the function and perform the classification.
 """
-def perform_multilabel_classification(task_name, task_settings, basic_settings):
+def perform_multilabel_classification(task_name, task_settings, basic_settings, a_random_seed):
     print("\n === Basic settings={} =======".format(basic_settings))
         
     save_log("\n =================== task_name={} ===============".format(task_name))
-      
+    
+    # ================= Global variable ==============
+    global random_seed
+    random_seed= a_random_seed
+
+
     #read the settings
     feature_selection_type=basic_settings["feature_selection_method"]
     imbalanced_data_strategy=basic_settings["imbalanced_data_strategy"]
