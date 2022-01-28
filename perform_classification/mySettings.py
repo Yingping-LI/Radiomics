@@ -8,11 +8,11 @@ import os
 def get_random_seed_list():
     # use random seed 2021 to randomly generate 50 integers as random seeds used in our experiments.
     # see utils/generate_random_number.ipynb for the code about how to generate these random seeds.
-    random_seed_list=[1140, 3413, 1152, 2669, 3934, 830, 4765, 2397, 198, 3174, 
-                      4166, 4641, 1799, 257,  410, 2992, 3555, 4159, 1585, 2704,
-                      4475, 1460, 2680, 3077, 3494, 4494, 3911, 3413, 70, 169,
-                      3605, 1270, 1700, 3091, 3257, 1106, 1754, 2959, 552, 1547,
-                      403, 1870, 2065, 3250, 1031,  245, 4595, 2284, 4215,  447]
+    random_seed_list=[3311, 4457, 2266, 2026, 283, 3632, 3881, 4704, 522, 2563, 
+                      2211, 2425, 3891, 629, 1321, 1349, 434, 850, 4487, 2409, 
+                      417, 4379, 3827, 934, 1634, 4934, 3611, 2294, 4314, 2761, 
+                      3054, 3239, 922, 1801, 1991, 3801, 3625, 3854, 948, 4442, 
+                      1814, 3797, 3874, 2316, 1117, 2295, 40, 167, 4395, 1875]
     
     random_seed_list=[2021]+random_seed_list
     

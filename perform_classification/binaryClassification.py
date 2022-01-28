@@ -442,23 +442,33 @@ def visualize_feature_importance(train_data, feature_columns, keep_feature_direc
     selected_features_importance_df=pd.DataFrame(selected_features_importance)  
     
     ## ------ Feature importance of keep_feature_directly and keep_feature_after_preprocessed features. ---
-    keep_feature_directly_pipeline=best_model["features"].get_params()["keep_feature_directly"]
-    directly_kept_features=keep_feature_directly_pipeline.fit_transform(train_X[keep_feature_directly], train_Y)
+    if len(keep_feature_directly)>0:
+        keep_feature_directly_pipeline=best_model["features"].get_params()["keep_feature_directly"]
+        directly_kept_features=keep_feature_directly_pipeline.fit_transform(train_X[keep_feature_directly], train_Y)
+    else:
+        directly_kept_features=pd.DataFrame() 
     
-    keep_feature_after_preprocessed_pipeline=best_model["features"].get_params()["kept_preprocessed_features"]
-    kept_preprocessed_features=keep_feature_after_preprocessed_pipeline.fit_transform(train_X[keep_feature_after_preprocessed], train_Y)
-    kept_preprocessed_features=pd.DataFrame(kept_preprocessed_features, index=train_X.index, 
-                                            columns=keep_feature_after_preprocessed) 
+    if len(keep_feature_directly)>0:
+        keep_feature_after_preprocessed_pipeline=best_model["features"].get_params()["kept_preprocessed_features"]
+        kept_preprocessed_features=keep_feature_after_preprocessed_pipeline.fit_transform(train_X[keep_feature_after_preprocessed], train_Y)
+        kept_preprocessed_features=pd.DataFrame(kept_preprocessed_features, index=train_X.index, 
+                                                columns=keep_feature_after_preprocessed) 
+    else:
+        kept_preprocessed_features=pd.DataFrame() 
+        
     kept_features=pd.concat([directly_kept_features, kept_preprocessed_features], axis=1, join="outer") 
     
     # calculate feature importance for the kept features.
-    feature_importance_caculator=SelectKBest(score_func=f_classif, k="all")
-    feature_importance_caculator.fit(kept_features, train_Y)
-    Kept_feature_importances={"feature_names": kept_features.columns,
-                               "scores": feature_importance_caculator.scores_ ,
-                               "support": feature_importance_caculator.get_support()}
-    
-    Kept_feature_importance_df=pd.DataFrame(Kept_feature_importances)  
+    if kept_features.shape[0]>0:
+        feature_importance_caculator=SelectKBest(score_func=f_classif, k="all")
+        feature_importance_caculator.fit(kept_features, train_Y)
+        Kept_feature_importances={"feature_names": kept_features.columns,
+                                   "scores": feature_importance_caculator.scores_ ,
+                                   "support": feature_importance_caculator.get_support()}
+
+        Kept_feature_importance_df=pd.DataFrame(Kept_feature_importances)  
+    else:
+        Kept_feature_importance_df=pd.DataFrame() 
     
     ## Concanate the importance of the selected radiomic features and the kept features, and save in excel.
     Feature_importance_results=pd.concat([selected_features_importance_df, Kept_feature_importance_df], axis=0, join="outer") 
