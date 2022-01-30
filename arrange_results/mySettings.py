@@ -217,20 +217,30 @@ def get_arrange_results_settings_dict():
 
 
 
-
+def get_random_seed_list():
+    # use random seed 2021 to randomly generate 50 integers as random seeds used in our experiments.
+    # see utils/generate_random_number.ipynb for the code about how to generate these random seeds.
+    random_seed_list=[3311, 4457, 2266, 2026, 283, 3632, 3881, 4704, 522, 2563, 
+                      2211, 2425, 3891, 629, 1321, 1349, 434, 850, 4487, 2409, 
+                      417, 4379, 3827, 934, 1634, 4934, 3611, 2294, 4314, 2761, 
+                      3054, 3239, 922, 1801, 1991, 3801, 3625, 3854, 948, 4442, 
+                      1814, 3797, 3874, 2316, 1117, 2295, 40, 167, 4395, 1875]
+    
+    random_seed_list=[2021]+random_seed_list
+    
+    return random_seed_list
 
 #================ used for "main_transform_binary-multiclass_classification.ipynb" ======================
 """
 Settings for converting three binary classification results to one multiclass classification results;
 """
-def get_convert_binary_to_multiclass_setting_dict():
+def get_convert_binary_to_multiclass_setting_dict(random_seed):
     
     # base path
     base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
     intensity_normalization="zscore"
-    random_seed=0
-    
-    results_base_path= os.path.join(base_dataPath, "Results_randomseed"+str(random_seed)) 
+
+    results_base_path= os.path.join(base_dataPath, "Results/seed"+str(random_seed)) 
     
     convert_binary_to_multiclass_setting_dict={}
     
@@ -242,11 +252,11 @@ def get_convert_binary_to_multiclass_setting_dict():
         
         # The final setting name for each task
         "final_task_setting_dict":{"is_GBM": "TCGA_1.104.02_isGBM_withAge",
-                                  "is_IDH_mutant": "TCGA_2.106_isIDHMutant_CC-withPredictLable_predictedForTrain", 
-                                  "is_1p19q_codeleted": "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable_predictedForTrain"},
+                                  "is_IDH_mutant": "TCGA_2.106_isIDHMutant_CC-withPredictLable", 
+                                  "is_1p19q_codeleted": "TCGA_3.106_is1p19qCodeleted_CC-withPredictLable"},
         
         # base path to save the results.
-        "save_results_basepath": results_base_path,                                    
+        "save_results_basepath": results_base_path,     
     }
     
      ##=============== Add other distributions =============================
@@ -296,13 +306,14 @@ Settings for plotting ROC curves with different random seeds in one plot;
 def get_plot_ROC_setting_dict():
     
     # base path
-    base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
+    base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes/Results"
+    random_seed_list=get_random_seed_list()
 
     plot_ROC_setting_dict={}
     
     plot_ROC_setting_dict["TCGA-IDH"]={
         "base_dataPath": base_dataPath,
-        "random_seed_list": [0, 500, 2021, 5000, 10000],   
+        "random_seed_list": random_seed_list,   
         "save_results_basepath": base_dataPath,     
         "data_excel_name": "multiclass_predicted_results-test_data.xlsx", #"multiclass_predicted_results-train_data.xlsx"
         "task_list": ["is_GBM", "is_IDH_mutant", "is_1p19q_codeleted"],
