@@ -460,11 +460,12 @@ def plot_confusion_matrix(y_true, predicted, save_results_path, save_file_name="
     cm = metrics.confusion_matrix(y_true, predicted, labels=classes)
     
     # plot the confusion matrix.
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(5, 3.5))
     sns.heatmap(cm, annot=True, fmt='d', cmap=plt.cm.Blues, cbar=False)
-    ax.set(xlabel="Pred", ylabel="True", title="Confusion matrix")
+    ax.set(xlabel="Pred", ylabel="True")#, title="Confusion matrix"
     ax.set_xticklabels(labels=classes)
     ax.set_yticklabels(labels=classes)
+    plt.tight_layout()
     plt.savefig(os.path.join(save_results_path, save_file_name))
     plt.show()
     
