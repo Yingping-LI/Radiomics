@@ -238,12 +238,31 @@ def get_convert_binary_to_multiclass_setting_dict(random_seed):
     
     # base path
     base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
-    intensity_normalization="zscore"
-
-    results_base_path= os.path.join(base_dataPath, "Results/seed"+str(random_seed)) 
+    results_base_path= os.path.join(base_dataPath, "Results_aftertuning/seed"+str(random_seed)) 
     
     convert_binary_to_multiclass_setting_dict={}
     
+    
+#    #=============== settings before tuning the pipeline==============
+#    #intensity_normalization="no_normalization" 
+#     convert_binary_to_multiclass_setting_dict["TCGA-IDH"]={
+#         # Image filter dict
+#         "image_filter_dict": {"is_GBM": "original",  
+#                              "is_IDH_mutant": "original",  
+#                              "is_1p19q_codeleted": "original", 
+#                              },
+        
+#         # The final setting name for each task
+#         "final_task_setting_dict":{"is_GBM": "TCGA_1.101_isGBM_base",  
+#                                   "is_IDH_mutant": "TCGA_2.101_isIDHMutant_base",  
+#                                   "is_1p19q_codeleted": "TCGA_3.101_is1p19qCodeleted_base", 
+#                                   },
+#         # base path to save the results.
+#         "save_results_basepath": results_base_path,     
+#     }
+    
+   ##=============== settings after tuning the pipeline==============
+    intensity_normalization="zscore" 
     convert_binary_to_multiclass_setting_dict["TCGA-IDH"]={
         # Image filter dict
         "image_filter_dict": {"is_GBM": "original",
