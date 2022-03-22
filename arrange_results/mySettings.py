@@ -238,7 +238,7 @@ def get_convert_binary_to_multiclass_setting_dict(random_seed):
     
     # base path
     base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
-    results_base_path= os.path.join(base_dataPath, "Results_aftertuning/seed"+str(random_seed)) 
+    results_base_path= os.path.join(base_dataPath, "Results_predictForTrain_fixedClassifier/seed"+str(random_seed)) 
     
     convert_binary_to_multiclass_setting_dict={}
     
