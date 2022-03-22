@@ -322,3 +322,28 @@ def get_plot_ROC_setting_dict():
 
     return plot_ROC_setting_dict
 
+
+
+#================ used for "compare_pipeline_tuning.ipynb" ======================
+"""
+Settings for comparing the mean cross-validation AUCs of the 51 random seeds before and after pipeline tuning;
+"""
+def get_compare_pipeline_tuning_dict():
+    
+    # base path
+    base_dataPath="G://PhDProjects/RadiogenomicsProjects/GliomasSubtypes"
+   
+    compare_pipeline_tuning_dict={}
+    
+    compare_pipeline_tuning_dict["TCGA-IDH"]={
+        "base_dataPath": base_dataPath,
+        "compare_dict":{"before tuning": os.path.join(base_dataPath, "Results_beforetuning", "all_CV_AUC_results.xlsx"),
+                       "after tuning": os.path.join(base_dataPath, "Results_predictForTrain", "all_CV_AUC_results.xlsx")
+                       },
+        "plot_setting":{"x_column": "classifier",
+                        "y_column": "std_AUC", #"std_AUC", #"mean_AUC",
+                       "hue_column": "compare_item"}
+    }
+    
+
+    return compare_pipeline_tuning_dict
