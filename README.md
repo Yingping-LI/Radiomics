@@ -1,5 +1,8 @@
 #  Codes for Radiomics/Radiogenomics Analysis.
  
+The following figure shows our final radiomics pipeline for predicting each binary classification label (tumor grade, IDH mutation status, and 1p/19q codeletion status) of the gliomas tumor.
+
+  <div align=center><img width="700" height="500" src="our_radiomics_pipeline_for_predicting_gliomas_subtypes.png" alt="Our radiomics pipeline for predicting glioma subtype"/></div>
 
 ## Citation: 
 
